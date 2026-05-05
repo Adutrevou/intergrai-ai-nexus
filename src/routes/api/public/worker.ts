@@ -116,6 +116,8 @@ export const Route = createFileRoute("/api/public/worker")({
               return json(await failTask(input));
             case "request_approval":
               return json(await requestApproval(input));
+            case "save_leads":
+              return json(await saveLeads(input));
           }
         } catch (e) {
           const message = e instanceof Error ? e.message : "Worker error";
