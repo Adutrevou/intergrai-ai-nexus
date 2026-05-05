@@ -41,7 +41,7 @@ const adminItems = [
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (p: string) => pathname === p;
-  const { profile, user, membership, signOut } = useAuth();
+  const { profile, user, membership, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Member";
