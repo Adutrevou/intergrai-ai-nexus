@@ -442,6 +442,9 @@ export function AdminTaskQueuePage() {
                   <p className="rounded-md border border-border p-3 text-sm text-muted-foreground">
                     {selected.result_summary ?? "No result yet."}
                   </p>
+                  {savedLeadCount !== null && (
+                    <KV k="Leads saved" v={savedLeadCount.toLocaleString()} />
+                  )}
                 </Section>
 
                 <Section title="Credits & timing">
