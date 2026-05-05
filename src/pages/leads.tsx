@@ -16,6 +16,13 @@ const statusColors: Record<string, string> = {
   lost: "bg-muted text-muted-foreground ring-border",
 };
 
+const emailColors: Record<string, string> = {
+  verified: "bg-success/15 text-success ring-success/30",
+  guessed: "bg-warning/20 text-warning-foreground ring-warning/40",
+  invalid: "bg-destructive/15 text-destructive ring-destructive/30",
+  unknown: "bg-muted text-muted-foreground ring-border",
+};
+
 export function LeadsPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -39,7 +46,7 @@ export function LeadsPage() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Leads</h1>
-          <p className="text-sm text-muted-foreground">Leads belonging to your workspace.</p>
+          <p className="text-sm text-muted-foreground">Leads belonging to your workspace tenant.</p>
         </div>
         <Button variant="outline" onClick={() => toast.info("Export coming soon")}>
           <Download className="mr-1.5 h-4 w-4" /> Export
@@ -79,10 +86,9 @@ export function LeadsPage() {
                   <TableHead>Company</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Website</TableHead>
-                  <TableHead>Industry</TableHead>
+                  <TableHead>Email status</TableHead>
                   <TableHead>Location</TableHead>
+                  <TableHead className="text-right">Score</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Source</TableHead>
                 </TableRow>
@@ -90,13 +96,24 @@ export function LeadsPage() {
               <TableBody>
                 {filtered.map((l) => (
                   <TableRow key={l.id}>
-                    <TableCell className="font-medium">{l.company_name}</TableCell>
-                    <TableCell>{l.contact_name}</TableCell>
+                    <TableCell>
+                      <div className="font-medium">{l.company_name}</div>
+                      <div className="text-xs text-muted-foreground">{l.industry}</div>
+                    </TableCell>
+                    <TableCell>
+                      <div>{l.contact_name}</div>
+                      <div className="text-xs text-muted-foreground">{l.phone}</div>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{l.email}</TableCell>
-                    <TableCell className="text-muted-foreground">{l.phone}</TableCell>
-                    <TableCell className="text-muted-foreground">{l.website}</TableCell>
-                    <TableCell>{l.industry}</TableCell>
+                    <TableCell>
+                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset capitalize", emailColors[l.email_status])}>
+                        {l.email_status}
+                      </span>
+                    </TableCell>
                     <TableCell>{l.location}</TableCell>
+                    <TableCell className="text-right">
+                      <ScoreBadge score={l.lead_score} />
+                    </TableCell>
                     <TableCell>
                       <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset capitalize", statusColors[l.status])}>{l.status}</span>
                     </TableCell>
@@ -109,5 +126,19 @@ export function LeadsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function ScoreBadge({ score }: { score: number }) {
+  const tone = score >= 85 ? "success" : score >= 70 ? "info" : score >= 50 ? "warning" : "destructive";
+  return (
+    <span className={cn("inline-flex items-center rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums ring-1 ring-inset", {
+      "bg-success/15 text-success ring-success/30": tone === "success",
+      "bg-info/15 text-info ring-info/30": tone === "info",
+      "bg-warning/20 text-warning-foreground ring-warning/40": tone === "warning",
+      "bg-destructive/15 text-destructive ring-destructive/30": tone === "destructive",
+    })}>
+      {score}
+    </span>
   );
 }

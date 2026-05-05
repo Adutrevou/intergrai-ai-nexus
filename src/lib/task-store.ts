@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { mockTasks, type Task, type TaskStatus } from "./mock-data";
+import { mockTasks, currentTenant, type Task, type TaskStatus, type TaskType } from "./mock-data";
 
 let tasks: Task[] = [...mockTasks];
 const listeners = new Set<() => void>();
@@ -12,15 +12,27 @@ export function getTasks() {
   return tasks;
 }
 
+function inferType(prompt: string): TaskType {
+  const p = prompt.toLowerCase();
+  if (p.includes("lead") || p.includes("find")) return "lead_search";
+  if (p.includes("outreach") || p.includes("email") || p.includes("draft")) return "outreach_draft";
+  if (p.includes("summar")) return "summary";
+  if (p.includes("enrich")) return "enrichment";
+  if (p.includes("research") || p.includes("scan") || p.includes("competitor")) return "research";
+  return "general";
+}
+
 export function addTask(prompt: string) {
   const title = prompt.length > 60 ? prompt.slice(0, 60) + "…" : prompt;
   const newTask: Task = {
     id: `tsk_${Date.now()}`,
-    tenant_id: "tnt_001",
+    tenant_id: currentTenant.id,
     title,
     prompt,
+    task_type: inferType(prompt),
     status: "queued",
     created_at: new Date().toISOString(),
+    created_by: currentTenant.user.name,
     estimated_credits: Math.floor(50 + Math.random() * 200),
     credits_used: 0,
   };

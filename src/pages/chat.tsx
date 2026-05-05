@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send } from "lucide-react";
+import { Sparkles, Send, ShieldCheck } from "lucide-react";
 import { addTask, useTasks } from "@/lib/task-store";
 import { StatusBadge } from "@/components/status-badge";
+import { taskTypeLabels } from "@/lib/mock-data";
+import { formatDateTime } from "@/lib/format";
 import { toast } from "sonner";
 
 const examples = [
@@ -30,38 +32,47 @@ export function ChatPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Ask AI</h1>
-        <p className="text-sm text-muted-foreground">Submit a task to your AI workforce. It runs in the background.</p>
+        <h1 className="text-2xl font-semibold tracking-tight">Ask Intergrai AI</h1>
+        <p className="text-sm text-muted-foreground">
+          Submit a task to your AI workforce. It runs in the background.
+        </p>
       </div>
 
       <Card className="overflow-hidden">
         <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
           <Sparkles className="h-4 w-4 text-brand" />
-          <span className="text-sm font-medium">Intergrai AI</span>
+          <span className="text-sm font-semibold">Intergrai AI composer</span>
         </div>
         <CardContent className="space-y-3 p-4">
           <Textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="What would you like the AI to do?"
-            className="min-h-32 resize-none border-0 bg-transparent text-base shadow-none focus-visible:ring-0"
+            placeholder="Ask Intergrai AI to find leads, draft outreach, summarise data, or prepare a task…"
+            className="min-h-44 resize-none border-0 bg-transparent text-base shadow-none focus-visible:ring-0"
             onKeyDown={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(prompt);
             }}
           />
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-muted-foreground">⌘ + Enter to submit</p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-muted-foreground">
+              Tasks are reviewed, queued, and processed based on your available credits.
+            </p>
             <Button onClick={() => submit(prompt)} disabled={!prompt.trim()}>
-              <Send className="mr-1.5 h-4 w-4" /> Submit task
+              <Send className="mr-1.5 h-4 w-4" /> Queue task
             </Button>
           </div>
         </CardContent>
       </Card>
 
+      <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
+        <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
+        Your AI usage is controlled by workspace credits. Tasks cannot exceed your plan limits without approval.
+      </p>
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Try an example</CardTitle>
-          <CardDescription>Click to submit instantly</CardDescription>
+          <CardDescription>Click to queue instantly</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-2 sm:grid-cols-2">
           {examples.map((ex) => (
@@ -89,7 +100,9 @@ export function ChatPage() {
             <div key={t.id} className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{t.title}</p>
-                <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()}</p>
+                <p className="text-xs text-muted-foreground">
+                  {taskTypeLabels[t.task_type]} • {formatDateTime(t.created_at)}
+                </p>
               </div>
               <StatusBadge status={t.status} />
             </div>

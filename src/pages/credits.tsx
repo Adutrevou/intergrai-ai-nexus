@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Coins, TrendingUp, Plus } from "lucide-react";
 import { currentTenant, mockCredits } from "@/lib/mock-data";
+import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -68,7 +69,7 @@ export function CreditsPage() {
             <TableBody>
               {mockCredits.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(c.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{formatDate(c.date)}</TableCell>
                   <TableCell>{c.description}</TableCell>
                   <TableCell className={cn("text-right tabular-nums font-medium", c.type === "credit" ? "text-success" : "text-foreground")}>
                     {c.type === "credit" ? "+" : "−"}{c.amount.toLocaleString()}
