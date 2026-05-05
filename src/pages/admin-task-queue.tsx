@@ -250,6 +250,30 @@ export function AdminTaskQueuePage() {
         <SummaryCard icon={<Coins className="h-4 w-4" />} label="Credits reserved" value={counts.reserved.toLocaleString()} tone="info" />
       </div>
 
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Worker API test panel</CardTitle>
+          <CardDescription>
+            Calls the real backend worker functions server-side. The worker key is never sent
+            to the browser. Pick a task in the table to enable complete/fail.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={runSimClaim} disabled={simBusy === "claim"}>
+            {simBusy === "claim" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <PlayCircle className="mr-1.5 h-4 w-4" />}
+            Simulate worker claim
+          </Button>
+          <Button size="sm" variant="outline" onClick={runSimComplete} disabled={!selected || simBusy === "complete"}>
+            {simBusy === "complete" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+            Simulate worker complete
+          </Button>
+          <Button size="sm" variant="outline" onClick={runSimFail} disabled={!selected || simBusy === "fail"}>
+            {simBusy === "fail" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <XCircle className="mr-1.5 h-4 w-4" />}
+            Simulate worker fail
+          </Button>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
           <div className="flex flex-wrap items-end justify-between gap-3">
