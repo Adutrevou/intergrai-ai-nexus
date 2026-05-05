@@ -336,18 +336,12 @@ export async function saveLeads(input: {
   }> = [];
   let duplicates = 0;
   for (const lead of input.leads) {
-    const email = lead.email?.toLowerCase().trim() ?? null;
-    const company = lead.company_name?.toLowerCase().trim() ?? null;
-    const website = lead.website?.toLowerCase().trim() ?? null;
-
-    if (email && emailSet.has(email)) {
+    const key = dupKey(lead.company_name, lead.email);
+    if (seen.has(key)) {
       duplicates++;
       continue;
     }
-    if (!email && company && website && compWebSet.has(`${company}|${website}`)) {
-      duplicates++;
-      continue;
-    }
+    seen.add(key);
 
     toInsert.push({
       tenant_id: input.tenant_id,
@@ -363,9 +357,6 @@ export async function saveLeads(input: {
       lead_score: lead.lead_score ?? null,
       source: lead.source ?? "mr_krabs",
     });
-
-    if (email) emailSet.add(email);
-    if (company && website) compWebSet.add(`${company}|${website}`);
   }
 
   let inserted = 0;
@@ -377,11 +368,10 @@ export async function saveLeads(input: {
     inserted = count ?? toInsert.length;
   }
 
-  const skipped = duplicates;
   const logs = appendLog(task.worker_logs, {
     ts: nowIso(),
     level: "info",
-    message: `Saved ${inserted} leads to client leads table. Skipped ${skipped} duplicates.`,
+    message: `Saved ${inserted} leads to client platform`,
     worker_id: task.worker_id ?? undefined,
   });
   const { error: logErr } = await supabaseAdmin
@@ -390,7 +380,7 @@ export async function saveLeads(input: {
     .eq("id", input.task_id);
   if (logErr) throw new Error(logErr.message);
 
-  return { ok: true, inserted, skipped, duplicates };
+  return { ok: true, inserted, skipped_duplicates: duplicates };
 }
 
 export function verifyWorkerKey(headerValue: string | null): boolean {
