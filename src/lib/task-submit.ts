@@ -58,10 +58,11 @@ export function classifyTask(prompt: string): ClassifiedTaskType {
   // 2. Outreach intent.
   if (/\b(outreach|emails?|messages?|campaigns?)\b/.test(p)) return "outreach_draft";
 
-  // 3. Lead generation — only when the prompt clearly asks to FIND/SOURCE/GENERATE new leads.
+  // 3. Lead generation — when the prompt asks to FIND/SOURCE/GENERATE new leads.
+  //    Also tolerate the common typo "fine" for "find".
   //    The bare word "lead(s)" must not be enough.
   const leadGenPatterns = [
-    /\bfind\b[^.]*\b(leads?|contacts?|companies|company|prospects?)\b/,
+    /\b(find|fine)\b[^.]*\b(leads?|contacts?|companies|company|prospects?)\b/,
     /\bsource\b[^.]*\bleads?\b/,
     /\bgenerate\b[^.]*\bleads?\b/,
     /\bget\b[^.]*\bnew\b[^.]*\bleads?\b/,
