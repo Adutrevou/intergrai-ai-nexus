@@ -51,7 +51,36 @@ export const joinDemoWorkspace = createServerFn({ method: "POST" })
       if (insertProfileError) throw new Error(insertProfileError.message);
     }
 
-    const { data: membership, error: membershipError } = await supabaseAdmin
+    const { data: existingMembership, error: existingMembershipError } = await supabaseAdmin
+      .from("tenant_members")
+      .select("role")
+      .eq("tenant_id", tenant.id)
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (existingMembershipError) throw new Error(existingMembershipError.message);
+
+    const membership = existingMembership ?? { role: "client_admin" };
+
+    if (!existingMembership) {
+      const { error: membershipError } = await supabaseAdmin.from("tenant_members").insert({
+        tenant_id: tenant.id,
+        user_id: userId,
+        role: "client_admin",
+      });
+
+      if (membershipError) throw new Error(membershipError.message);
+    }
+
+    return {
+      profileId: userId,
+      tenantId: tenant.id,
+      tenantName: tenant.name,
+      tenantSlug: tenant.slug,
+      tenantRole: membership.role,
+      membershipStatus: "joined",
+    };
+  });
       .from("tenant_members")
       .upsert(
         { tenant_id: tenant.id, user_id: userId, role: "client_admin" },
