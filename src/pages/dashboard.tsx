@@ -77,21 +77,16 @@ export function DashboardPage() {
   const remainingTasks = Math.floor(tenant.credit_balance / avgPerTask);
 
   const submit = async () => {
-    if (!prompt.trim() || !userId) return;
     setSubmitting(true);
-    const { error: insErr } = await supabase.from("client_tasks").insert({
-      tenant_id: tenant.id,
-      user_id: userId,
-      prompt: prompt.trim(),
-      title: prompt.trim().slice(0, 80),
-      task_type: "general",
-      status: "queued",
-      created_by_name: profile?.full_name ?? profile?.email ?? "Member",
-      credits_estimated: 50,
+    const res = await submitTask({
+      prompt,
+      tenantId: tenant.id,
+      userId,
+      createdByName: profile?.full_name ?? profile?.email ?? "Member",
     });
     setSubmitting(false);
-    if (insErr) {
-      toast.error("Could not queue task", { description: insErr.message });
+    if (!res.ok) {
+      toast.error("Could not queue task", { description: res.error });
       return;
     }
     setPrompt("");
