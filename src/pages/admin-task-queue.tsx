@@ -115,7 +115,14 @@ export function AdminTaskQueuePage() {
 
   const updateStatus = async (id: string, status: string) => {
     const current = tasks.find((t) => t.id === id);
-    const patch: Record<string, unknown> = { status };
+    const patch: {
+      status: string;
+      started_at?: string;
+      completed_at?: string;
+      failed_at?: string;
+      result_summary?: string;
+      error_message?: string;
+    } = { status };
     const nowIso = new Date().toISOString();
     if (status === "running") {
       patch.started_at = nowIso;
