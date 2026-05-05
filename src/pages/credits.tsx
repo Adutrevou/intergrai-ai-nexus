@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Coins, TrendingUp, Plus } from "lucide-react";
 import { currentTenant, mockCredits } from "@/lib/mock-data";
+import { formatDate } from "@/lib/format";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
