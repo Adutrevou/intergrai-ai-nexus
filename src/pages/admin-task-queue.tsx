@@ -153,6 +153,55 @@ export function AdminTaskQueuePage() {
     load();
   };
 
+  const simClaim = useServerFn(simulateWorkerClaim);
+  const simComplete = useServerFn(simulateWorkerComplete);
+  const simFail = useServerFn(simulateWorkerFail);
+  const [simBusy, setSimBusy] = useState<string | null>(null);
+
+  const runSimClaim = async () => {
+    setSimBusy("claim");
+    try {
+      const res = await simClaim({ data: {} });
+      if (res?.task) toast.success("Worker claimed a queued task");
+      else toast.info("No queued tasks available to claim");
+      load();
+    } catch (e) {
+      toast.error("Simulate claim failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
+  const runSimComplete = async () => {
+    if (!selected) return;
+    setSimBusy("complete");
+    try {
+      await simComplete({
+        data: { task_id: selected.id, credits_used: selected.credits_estimated },
+      });
+      toast.success("Simulated worker completion");
+      load();
+    } catch (e) {
+      toast.error("Simulate complete failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
+  const runSimFail = async () => {
+    if (!selected) return;
+    setSimBusy("fail");
+    try {
+      await simFail({ data: { task_id: selected.id } });
+      toast.success("Simulated worker failure");
+      load();
+    } catch (e) {
+      toast.error("Simulate fail failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center py-24 text-muted-foreground">
