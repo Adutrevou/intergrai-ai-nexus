@@ -1,11 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/app-shell";
+import { ClientGate } from "@/components/client-gate";
 import { CreditsPage } from "@/pages/credits";
 
 export const Route = createFileRoute("/client/credits")({
   component: () => (
-    <AppShell>
+    <ClientGate>
       <CreditsPage />
-    </AppShell>
+    </ClientGate>
   ),
 });
