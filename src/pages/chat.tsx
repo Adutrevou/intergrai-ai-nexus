@@ -207,3 +207,33 @@ export function ChatPage() {
     </div>
   );
 }
+
+function EstimatePreview({ prompt, balance }: { prompt: string; balance: number | null }) {
+  const trimmed = prompt.trim();
+  if (trimmed.length < 3) return null;
+  const { type, credits } = estimateCredits(trimmed);
+  const insufficient = balance !== null && balance < credits;
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border px-3 py-2 text-xs",
+        insufficient
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : "border-border bg-muted/40 text-muted-foreground",
+      )}
+    >
+      <span>
+        Task type: <span className="font-medium text-foreground">{taskTypeDisplay[type]}</span>
+      </span>
+      <span>
+        Estimated credits: <span className="font-semibold tabular-nums text-foreground">{credits}</span>
+      </span>
+      {balance !== null && (
+        <span className="ml-auto tabular-nums">
+          Balance: {balance.toLocaleString()}
+          {insufficient && " — not enough credits"}
+        </span>
+      )}
+    </div>
+  );
+}
