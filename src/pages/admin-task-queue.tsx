@@ -114,13 +114,29 @@ export function AdminTaskQueuePage() {
   }, [tasks]);
 
   const updateStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("client_tasks").update({ status }).eq("id", id);
+    const current = tasks.find((t) => t.id === id);
+    const patch: Record<string, unknown> = { status };
+    const nowIso = new Date().toISOString();
+    if (status === "running") {
+      patch.started_at = nowIso;
+    } else if (status === "completed") {
+      patch.completed_at = nowIso;
+      if (!current?.result_summary) {
+        patch.result_summary = "Demo: task marked completed by admin (worker not connected).";
+      }
+    } else if (status === "failed") {
+      patch.failed_at = nowIso;
+      if (!current?.error_message) {
+        patch.error_message = "Demo: task marked failed by admin (worker not connected).";
+      }
+    }
+    const { error } = await supabase.from("client_tasks").update(patch).eq("id", id);
     if (error) {
       toast.error("Update failed", { description: error.message });
       return;
     }
     toast.success(`Task marked ${status.replace("_", " ")}`);
-    setSelected((cur) => (cur && cur.id === id ? { ...cur, status } : cur));
+    setSelected((cur) => (cur && cur.id === id ? { ...cur, ...patch } as AdminTask : cur));
     load();
   };
 
