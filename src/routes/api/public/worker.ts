@@ -34,7 +34,7 @@ const CompleteSchema = z.object({
   action: z.literal("complete_task"),
   task_id: z.string().uuid(),
   result_summary: z.string().max(2000),
-  result_payload: z.unknown(),
+  result_payload: z.any(),
   credits_used: z.number().int().min(0).max(1_000_000),
 });
 
@@ -48,7 +48,7 @@ const ApprovalSchema = z.object({
   action: z.literal("request_approval"),
   task_id: z.string().uuid(),
   result_summary: z.string().max(2000),
-  result_payload: z.unknown(),
+  result_payload: z.any(),
   message: z.string().min(1).max(2000),
 });
 
