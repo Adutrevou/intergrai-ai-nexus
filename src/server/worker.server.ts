@@ -101,7 +101,7 @@ export async function updateTaskLog(input: {
 export async function completeTask(input: {
   task_id: string;
   result_summary: string;
-  result_payload: unknown;
+  result_payload?: unknown;
   credits_used: number;
 }) {
   const task = await loadTask(input.task_id);
@@ -248,7 +248,7 @@ export async function failTask(input: { task_id: string; error_message: string }
 export async function requestApproval(input: {
   task_id: string;
   result_summary: string;
-  result_payload: unknown;
+  result_payload?: unknown;
   message: string;
 }) {
   const task = await loadTask(input.task_id);
