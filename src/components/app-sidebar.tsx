@@ -33,7 +33,10 @@ const clientItems = [
   { title: "Settings", url: "/client/settings", icon: Settings },
 ];
 
-const adminItems = [{ title: "Tenants", url: "/admin/tenants", icon: Building2 }];
+const adminItems = [
+  { title: "Tenants", url: "/admin/tenants", icon: Building2 },
+  { title: "Task Queue", url: "/admin/task-queue", icon: ListChecks },
+];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
