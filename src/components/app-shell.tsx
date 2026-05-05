@@ -25,6 +25,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </button>
             </div>
           </header>
+          <div className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-center text-xs text-amber-700 dark:text-amber-300">
+            Demo data — Lovable Cloud schema is provisioned (tenants, profiles, tenant_members, client_tasks, leads, credit_ledger, chat_messages). Live auth + tenant-aware queries connect next.
+          </div>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
         </div>
       </div>
