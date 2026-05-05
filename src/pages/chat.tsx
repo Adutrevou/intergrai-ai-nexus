@@ -1,30 +1,80 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, ShieldCheck } from "lucide-react";
-import { addTask, useTasks } from "@/lib/task-store";
+import { Sparkles, Send, ShieldCheck, Loader2 } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
-import { taskTypeLabels } from "@/lib/mock-data";
 import { formatDateTime } from "@/lib/format";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
+import { submitTask, taskTypeDisplay, onTasksChanged, type ClassifiedTaskType } from "@/lib/task-submit";
 
 const examples = [
   "Find me 25 hospitality leads in Johannesburg",
   "Draft an outreach message for these leads",
   "Summarise my current leads",
-  "Enrich my latest 50 contacts with phone and LinkedIn",
+  "Research three competitors in the boutique hotel space",
 ];
 
+type RecentTask = {
+  id: string;
+  title: string | null;
+  prompt: string;
+  task_type: string | null;
+  status: string;
+  created_at: string;
+};
+
 export function ChatPage() {
+  const { membership, profile, user } = useAuth();
+  const tenantId = membership?.tenant_id ?? null;
   const [prompt, setPrompt] = useState("");
-  const tasks = useTasks();
+  const [submitting, setSubmitting] = useState(false);
+  const [tasks, setTasks] = useState<RecentTask[]>([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
   const navigate = useNavigate();
 
-  const submit = (text: string) => {
-    if (!text.trim()) return;
-    addTask(text.trim());
+  const loadTasks = async () => {
+    if (!tenantId) {
+      setTasks([]);
+      setLoadingTasks(false);
+      return;
+    }
+    setLoadingTasks(true);
+    const { data } = await supabase
+      .from("client_tasks")
+      .select("id, title, prompt, task_type, status, created_at")
+      .eq("tenant_id", tenantId)
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setTasks((data ?? []) as RecentTask[]);
+    setLoadingTasks(false);
+  };
+
+  useEffect(() => {
+    loadTasks();
+    const unsub = onTasksChanged(() => loadTasks());
+    return () => {
+      unsub();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantId]);
+
+  const submit = async (text: string) => {
+    setSubmitting(true);
+    const res = await submitTask({
+      prompt: text,
+      tenantId,
+      userId: user?.id ?? null,
+      createdByName: profile?.full_name ?? profile?.email ?? "Member",
+    });
+    setSubmitting(false);
+    if (!res.ok) {
+      toast.error("Could not queue task", { description: res.error });
+      return;
+    }
     setPrompt("");
     toast.success("Task queued", { description: "Your AI task is now in the queue." });
   };
@@ -37,6 +87,18 @@ export function ChatPage() {
           Submit a task to your AI workforce. It runs in the background.
         </p>
       </div>
+
+      {!tenantId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">No workspace joined</CardTitle>
+            <CardDescription>Join a workspace before submitting tasks.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate({ to: "/client/settings" })}>Go to Settings</Button>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="overflow-hidden">
         <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
@@ -57,7 +119,7 @@ export function ChatPage() {
             <p className="text-xs text-muted-foreground">
               Tasks are reviewed, queued, and processed based on your available credits.
             </p>
-            <Button onClick={() => submit(prompt)} disabled={!prompt.trim()}>
+            <Button onClick={() => submit(prompt)} disabled={!prompt.trim() || submitting || !tenantId}>
               <Send className="mr-1.5 h-4 w-4" /> Queue task
             </Button>
           </div>
@@ -79,7 +141,8 @@ export function ChatPage() {
             <button
               key={ex}
               onClick={() => submit(ex)}
-              className="rounded-md border border-border bg-card p-3 text-left text-sm transition hover:border-brand/50 hover:bg-accent"
+              disabled={submitting || !tenantId}
+              className="rounded-md border border-border bg-card p-3 text-left text-sm transition hover:border-brand/50 hover:bg-accent disabled:opacity-50"
             >
               {ex}
             </button>
@@ -93,20 +156,36 @@ export function ChatPage() {
             <CardTitle className="text-base">Your recent tasks</CardTitle>
             <CardDescription>The 5 most recent submissions</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/client/tasks" })}>View all</Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/client/tasks" })}>
+            View all
+          </Button>
         </CardHeader>
         <CardContent className="space-y-2">
-          {tasks.slice(0, 5).map((t) => (
-            <div key={t.id} className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{t.title}</p>
-                <p className="text-xs text-muted-foreground">
-                  {taskTypeLabels[t.task_type]} • {formatDateTime(t.created_at)}
-                </p>
-              </div>
-              <StatusBadge status={t.status} />
-            </div>
-          ))}
+          {loadingTasks ? (
+            <p className="flex items-center gap-2 p-2 text-sm text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…
+            </p>
+          ) : tasks.length === 0 ? (
+            <p className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+              No tasks yet
+            </p>
+          ) : (
+            tasks.map((t) => {
+              const label =
+                taskTypeDisplay[(t.task_type ?? "general_task") as ClassifiedTaskType] ?? t.task_type ?? "Task";
+              return (
+                <div key={t.id} className="flex items-start justify-between gap-3 rounded-md border border-border p-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{t.title ?? t.prompt.slice(0, 80)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {label} • {formatDateTime(t.created_at)}
+                    </p>
+                  </div>
+                  <StatusBadge status={t.status as never} />
+                </div>
+              );
+            })
+          )}
         </CardContent>
       </Card>
     </div>
