@@ -403,6 +403,20 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      queue_task_with_reservation: {
+        Args: {
+          _created_by_name: string
+          _credits_estimated: number
+          _prompt: string
+          _task_type: string
+          _tenant_id: string
+          _title: string
+        }
+        Returns: {
+          balance_after: number
+          task_id: string
+        }[]
+      }
     }
     Enums: {
       app_role: "intergrai_admin" | "client_user"
