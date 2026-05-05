@@ -22,13 +22,18 @@ export const taskTypeDisplay: Record<ClassifiedTaskType, string> = {
   general_task: "General task",
 };
 
-const creditEstimate: Record<ClassifiedTaskType, number> = {
+export const creditEstimate: Record<ClassifiedTaskType, number> = {
   lead_generation: 100,
   outreach_draft: 40,
   summary: 25,
   research: 60,
   general_task: 20,
 };
+
+export function estimateCredits(prompt: string): { type: ClassifiedTaskType; credits: number } {
+  const type = classifyTask(prompt);
+  return { type, credits: creditEstimate[type] };
+}
 
 export function classifyTask(prompt: string): ClassifiedTaskType {
   const p = prompt.toLowerCase();
