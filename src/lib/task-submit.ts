@@ -80,6 +80,24 @@ export async function submitTask({ prompt, tenantId, userId, createdByName }: Su
   }
   const cleanPrompt = parsed.data;
   const task_type = classifyTask(cleanPrompt);
+  const credits_estimated = creditEstimate[task_type];
+
+  // Tenant-scoped credit balance check
+  const { data: tenant, error: tErr } = await supabase
+    .from("tenants")
+    .select("credit_balance")
+    .eq("id", tenantId)
+    .maybeSingle();
+  if (tErr || !tenant) {
+    return { ok: false, error: "Could not verify workspace credit balance." };
+  }
+  if (tenant.credit_balance < credits_estimated) {
+    return {
+      ok: false,
+      error: `Not enough credits. Please request a top-up before queuing this task. Balance: ${tenant.credit_balance}, required: ${credits_estimated}.`,
+    };
+  }
+
   const { error } = await supabase.from("client_tasks").insert({
     tenant_id: tenantId,
     user_id: userId,
@@ -87,7 +105,7 @@ export async function submitTask({ prompt, tenantId, userId, createdByName }: Su
     prompt: cleanPrompt,
     task_type,
     status: "queued",
-    credits_estimated: creditEstimate[task_type],
+    credits_estimated,
     credits_used: 0,
     result_summary: null,
     created_by_name: createdByName ?? "Member",
