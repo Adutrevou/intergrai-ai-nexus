@@ -16,10 +16,10 @@ export type DemoTenantJoinResult = {
 export const joinDemoWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DemoTenantJoinResult> => {
-    const { supabase, userId } = context;
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { claims, userId } = context;
+    const signedInEmail = typeof claims.email === "string" ? claims.email : null;
 
-    if (authError || !authData.user || authData.user.id !== userId) {
+    if (!userId) {
       throw new Error("Authentication required to join the demo workspace.");
     }
 
@@ -43,11 +43,8 @@ export const joinDemoWorkspace = createServerFn({ method: "POST" })
     if (!profile) {
       const { error: insertProfileError } = await supabaseAdmin.from("profiles").insert({
         id: userId,
-        email: authData.user.email ?? null,
-        full_name:
-          typeof authData.user.user_metadata?.full_name === "string"
-            ? authData.user.user_metadata.full_name
-            : null,
+        email: signedInEmail,
+        full_name: null,
       });
 
       if (insertProfileError) throw new Error(insertProfileError.message);
