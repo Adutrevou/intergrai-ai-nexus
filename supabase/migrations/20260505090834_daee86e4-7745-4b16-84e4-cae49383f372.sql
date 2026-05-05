@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.join_demo_tenant_membership();
