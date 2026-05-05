@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTenantDashboard, type DbTask, type DbLead } from "@/lib/use-tenant-dashboard";
-import { supabase } from "@/integrations/supabase/client";
+import { submitTask } from "@/lib/task-submit";
 
 export function DashboardPage() {
   const { profile, membership } = useAuth();
