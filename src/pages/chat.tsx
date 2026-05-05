@@ -66,7 +66,11 @@ export function ChatPage() {
 
   useEffect(() => {
     loadTasks();
-    const unsub = onTasksChanged(() => loadTasks());
+    loadBalance();
+    const unsub = onTasksChanged(() => {
+      loadTasks();
+      loadBalance();
+    });
     return () => {
       unsub();
     };
