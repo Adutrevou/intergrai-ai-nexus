@@ -39,6 +39,16 @@ type AdminTask = {
   created_by_name: string | null;
   created_at: string;
   result_summary: string | null;
+  worker_id: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  failed_at: string | null;
+  error_message: string | null;
+  result_payload: unknown | null;
+  worker_logs: unknown | null;
+  priority: number;
+  retry_count: number;
+  max_retries: number;
   tenant: { id: string; name: string; slug: string; plan: string; credit_balance: number } | null;
 };
 
