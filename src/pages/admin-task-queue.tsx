@@ -26,6 +26,12 @@ import { formatDateTime } from "@/lib/format";
 import { taskTypeDisplay, type ClassifiedTaskType } from "@/lib/task-submit";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  simulateWorkerClaim,
+  simulateWorkerComplete,
+  simulateWorkerFail,
+} from "@/server/admin-worker-sim.functions";
 
 type AdminTask = {
   id: string;
