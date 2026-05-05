@@ -224,7 +224,7 @@ export function DashboardPage() {
           <EstimatePreview prompt={prompt} balance={tenant.credit_balance} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Credits are checked before queuing. Final credits are deducted once the AI worker processes the task.
+              Estimated credits are reserved when a task is queued. Any unused credits can be released when the task is completed.
             </p>
             <Button onClick={submit} disabled={!prompt.trim() || submitting}>
               <Send className="mr-1.5 h-4 w-4" /> Queue task
