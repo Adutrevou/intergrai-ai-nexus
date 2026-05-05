@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,11 +5,7 @@ import { Plus, UserPlus, Coins, Eye } from "lucide-react";
 import { mockTenants } from "@/lib/mock-data";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/admin/tenants")({
-  component: AdminTenantsPage,
-});
-
-function AdminTenantsPage() {
+export function AdminTenantsPage() {
   const action = (label: string) => () => toast.info(label, { description: "Coming soon" });
 
   return (
@@ -21,9 +16,7 @@ function AdminTenantsPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Tenants</h1>
           <p className="text-sm text-muted-foreground">All companies on the Intergrai platform.</p>
         </div>
-        <Button onClick={action("Create tenant")}>
-          <Plus className="mr-1.5 h-4 w-4" /> Create tenant
-        </Button>
+        <Button onClick={action("Create tenant")}><Plus className="mr-1.5 h-4 w-4" /> Create tenant</Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">

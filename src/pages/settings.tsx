@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,11 +5,7 @@ import { Button } from "@/components/ui/button";
 import { currentTenant } from "@/lib/mock-data";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/client/settings")({
-  component: SettingsPage,
-});
-
-function SettingsPage() {
+export function SettingsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -24,14 +19,8 @@ function SettingsPage() {
           <CardDescription>Your company / tenant details</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Workspace name</Label>
-            <Input defaultValue={currentTenant.name} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Plan</Label>
-            <Input defaultValue={currentTenant.plan} disabled />
-          </div>
+          <div className="space-y-1.5"><Label>Workspace name</Label><Input defaultValue={currentTenant.name} /></div>
+          <div className="space-y-1.5"><Label>Plan</Label><Input defaultValue={currentTenant.plan} disabled /></div>
         </CardContent>
       </Card>
 
@@ -41,14 +30,8 @@ function SettingsPage() {
           <CardDescription>Your user account</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label>Name</Label>
-            <Input defaultValue={currentTenant.user.name} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Email</Label>
-            <Input defaultValue={currentTenant.user.email} />
-          </div>
+          <div className="space-y-1.5"><Label>Name</Label><Input defaultValue={currentTenant.user.name} /></div>
+          <div className="space-y-1.5"><Label>Email</Label><Input defaultValue={currentTenant.user.email} /></div>
         </CardContent>
       </Card>
 

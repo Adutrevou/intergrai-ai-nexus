@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,11 +8,7 @@ import { useTasks } from "@/lib/task-store";
 import { StatusBadge } from "@/components/status-badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-export const Route = createFileRoute("/_app/client/dashboard")({
-  component: Dashboard,
-});
-
-function Dashboard() {
+export function DashboardPage() {
   const tasks = useTasks();
   const counts = {
     queued: tasks.filter((t) => t.status === "queued").length,
@@ -31,64 +27,46 @@ function Dashboard() {
           <h1 className="text-2xl font-semibold tracking-tight">{currentTenant.name}</h1>
         </div>
         <Button asChild>
-          <Link to="/client/chat">
-            New AI task <ArrowRight className="ml-1 h-4 w-4" />
-          </Link>
+          <Link to="/client/chat">New AI task <ArrowRight className="ml-1 h-4 w-4" /></Link>
         </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Coins className="h-3.5 w-3.5" /> Credit balance
-            </CardDescription>
+            <CardDescription className="flex items-center gap-1.5"><Coins className="h-3.5 w-3.5" /> Credit balance</CardDescription>
             <CardTitle className="text-3xl">{currentTenant.credit_balance.toLocaleString()}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/client/credits">Manage credits</Link>
-            </Button>
+            <Button asChild variant="outline" size="sm"><Link to="/client/credits">Manage credits</Link></Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5" /> Monthly usage
-            </CardDescription>
+            <CardDescription className="flex items-center gap-1.5"><Activity className="h-3.5 w-3.5" /> Monthly usage</CardDescription>
             <CardTitle className="text-3xl">{currentTenant.monthly_usage.toLocaleString()}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-1.5">
             <Progress value={usagePct} />
-            <p className="text-xs text-muted-foreground">
-              of {currentTenant.monthly_limit.toLocaleString()} on {currentTenant.plan}
-            </p>
+            <p className="text-xs text-muted-foreground">of {currentTenant.monthly_limit.toLocaleString()} on {currentTenant.plan}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <ListChecks className="h-3.5 w-3.5" /> Total tasks
-            </CardDescription>
+            <CardDescription className="flex items-center gap-1.5"><ListChecks className="h-3.5 w-3.5" /> Total tasks</CardDescription>
             <CardTitle className="text-3xl">{tasks.length}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/client/tasks">View tasks</Link>
-            </Button>
+            <Button asChild variant="outline" size="sm"><Link to="/client/tasks">View tasks</Link></Button>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <Users2 className="h-3.5 w-3.5" /> Leads
-            </CardDescription>
+            <CardDescription className="flex items-center gap-1.5"><Users2 className="h-3.5 w-3.5" /> Leads</CardDescription>
             <CardTitle className="text-3xl">{mockLeads.length}</CardTitle>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline" size="sm">
-              <Link to="/client/leads">View leads</Link>
-            </Button>
+            <Button asChild variant="outline" size="sm"><Link to="/client/leads">View leads</Link></Button>
           </CardContent>
         </Card>
       </div>
@@ -100,10 +78,7 @@ function Dashboard() {
         </CardHeader>
         <CardContent>
           <Button asChild className="w-full justify-between" variant="secondary">
-            <Link to="/client/chat">
-              What would you like the AI to do?
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+            <Link to="/client/chat">What would you like the AI to do?<ArrowRight className="h-4 w-4" /></Link>
           </Button>
         </CardContent>
       </Card>
@@ -123,18 +98,14 @@ function Dashboard() {
               <CardTitle className="text-base">Recent tasks</CardTitle>
               <CardDescription>Latest 5 across your workspace</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/client/tasks">View all</Link>
-            </Button>
+            <Button asChild variant="ghost" size="sm"><Link to="/client/tasks">View all</Link></Button>
           </CardHeader>
           <CardContent className="space-y-2">
             {tasks.slice(0, 5).map((t) => (
               <div key={t.id} className="flex items-start justify-between gap-3 rounded-md border border-border bg-card p-3">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{t.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {new Date(t.created_at).toLocaleString()} • est {t.estimated_credits} credits
-                  </p>
+                  <p className="text-xs text-muted-foreground">{new Date(t.created_at).toLocaleString()} • est {t.estimated_credits} credits</p>
                 </div>
                 <StatusBadge status={t.status} />
               </div>
@@ -148,9 +119,7 @@ function Dashboard() {
               <CardTitle className="text-base">Leads preview</CardTitle>
               <CardDescription>Latest leads in your workspace</CardDescription>
             </div>
-            <Button asChild variant="ghost" size="sm">
-              <Link to="/client/leads">View all</Link>
-            </Button>
+            <Button asChild variant="ghost" size="sm"><Link to="/client/leads">View all</Link></Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -178,17 +147,7 @@ function Dashboard() {
   );
 }
 
-function StatusTile({
-  icon,
-  label,
-  value,
-  tone,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: number;
-  tone: "muted" | "info" | "warning" | "success" | "destructive";
-}) {
+function StatusTile({ icon, label, value, tone }: { icon: React.ReactNode; label: string; value: number; tone: "muted" | "info" | "warning" | "success" | "destructive"; }) {
   const map: Record<string, string> = {
     muted: "bg-muted text-muted-foreground",
     info: "bg-info/15 text-info",

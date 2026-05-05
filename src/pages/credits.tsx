@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -8,11 +7,7 @@ import { currentTenant, mockCredits } from "@/lib/mock-data";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_app/client/credits")({
-  component: CreditsPage,
-});
-
-function CreditsPage() {
+export function CreditsPage() {
   const usagePct = (currentTenant.monthly_usage / currentTenant.monthly_limit) * 100;
 
   return (
@@ -33,9 +28,7 @@ function CreditsPage() {
             <CardDescription className="flex items-center gap-1.5 text-brand-foreground/80">
               <Coins className="h-3.5 w-3.5" /> Current balance
             </CardDescription>
-            <CardTitle className="text-4xl text-brand-foreground">
-              {currentTenant.credit_balance.toLocaleString()}
-            </CardTitle>
+            <CardTitle className="text-4xl text-brand-foreground">{currentTenant.credit_balance.toLocaleString()}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-xs text-brand-foreground/80">Plan: {currentTenant.plan}</p>
@@ -44,14 +37,10 @@ function CreditsPage() {
 
         <Card className="md:col-span-2">
           <CardHeader className="pb-2">
-            <CardDescription className="flex items-center gap-1.5">
-              <TrendingUp className="h-3.5 w-3.5" /> Monthly usage
-            </CardDescription>
+            <CardDescription className="flex items-center gap-1.5"><TrendingUp className="h-3.5 w-3.5" /> Monthly usage</CardDescription>
             <CardTitle className="text-3xl">
               {currentTenant.monthly_usage.toLocaleString()}{" "}
-              <span className="text-base font-normal text-muted-foreground">
-                / {currentTenant.monthly_limit.toLocaleString()}
-              </span>
+              <span className="text-base font-normal text-muted-foreground">/ {currentTenant.monthly_limit.toLocaleString()}</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
@@ -79,17 +68,12 @@ function CreditsPage() {
             <TableBody>
               {mockCredits.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
-                    {new Date(c.date).toLocaleDateString()}
-                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(c.date).toLocaleDateString()}</TableCell>
                   <TableCell>{c.description}</TableCell>
                   <TableCell className={cn("text-right tabular-nums font-medium", c.type === "credit" ? "text-success" : "text-foreground")}>
-                    {c.type === "credit" ? "+" : "−"}
-                    {c.amount.toLocaleString()}
+                    {c.type === "credit" ? "+" : "−"}{c.amount.toLocaleString()}
                   </TableCell>
-                  <TableCell className="text-right tabular-nums text-muted-foreground">
-                    {c.balance_after.toLocaleString()}
-                  </TableCell>
+                  <TableCell className="text-right tabular-nums text-muted-foreground">{c.balance_after.toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

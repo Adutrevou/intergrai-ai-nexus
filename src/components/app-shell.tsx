@@ -1,11 +1,12 @@
-import { Outlet } from "@tanstack/react-router";
+import { ReactNode } from "react";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Bell, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-export function AppShell() {
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-background">
@@ -24,9 +25,7 @@ export function AppShell() {
               </button>
             </div>
           </header>
-          <main className="flex-1 p-4 md:p-6 lg:p-8">
-            <Outlet />
-          </main>
+          <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
         </div>
       </div>
     </SidebarProvider>

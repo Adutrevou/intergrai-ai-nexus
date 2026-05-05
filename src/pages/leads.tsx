@@ -1,4 +1,3 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -10,10 +9,6 @@ import { mockLeads } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/client/leads")({
-  component: LeadsPage,
-});
-
 const statusColors: Record<string, string> = {
   new: "bg-info/15 text-info ring-info/30",
   contacted: "bg-warning/20 text-warning-foreground ring-warning/40",
@@ -21,7 +16,7 @@ const statusColors: Record<string, string> = {
   lost: "bg-muted text-muted-foreground ring-border",
 };
 
-function LeadsPage() {
+export function LeadsPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
 
@@ -103,9 +98,7 @@ function LeadsPage() {
                     <TableCell>{l.industry}</TableCell>
                     <TableCell>{l.location}</TableCell>
                     <TableCell>
-                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset capitalize", statusColors[l.status])}>
-                        {l.status}
-                      </span>
+                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset capitalize", statusColors[l.status])}>{l.status}</span>
                     </TableCell>
                     <TableCell className="text-muted-foreground">{l.source}</TableCell>
                   </TableRow>

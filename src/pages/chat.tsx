@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,6 @@ import { addTask, useTasks } from "@/lib/task-store";
 import { StatusBadge } from "@/components/status-badge";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_app/client/chat")({
-  component: ChatPage,
-});
-
 const examples = [
   "Find me 25 hospitality leads in Johannesburg",
   "Draft an outreach message for these leads",
@@ -19,7 +15,7 @@ const examples = [
   "Enrich my latest 50 contacts with phone and LinkedIn",
 ];
 
-function ChatPage() {
+export function ChatPage() {
   const [prompt, setPrompt] = useState("");
   const tasks = useTasks();
   const navigate = useNavigate();
@@ -35,9 +31,7 @@ function ChatPage() {
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Ask AI</h1>
-        <p className="text-sm text-muted-foreground">
-          Submit a task to your AI workforce. It runs in the background.
-        </p>
+        <p className="text-sm text-muted-foreground">Submit a task to your AI workforce. It runs in the background.</p>
       </div>
 
       <Card className="overflow-hidden">
@@ -88,9 +82,7 @@ function ChatPage() {
             <CardTitle className="text-base">Your recent tasks</CardTitle>
             <CardDescription>The 5 most recent submissions</CardDescription>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/client/tasks" })}>
-            View all
-          </Button>
+          <Button variant="ghost" size="sm" onClick={() => navigate({ to: "/client/tasks" })}>View all</Button>
         </CardHeader>
         <CardContent className="space-y-2">
           {tasks.slice(0, 5).map((t) => (
