@@ -9,38 +9,154 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ClientLoginRouteImport } from './routes/client.login'
+import { Route as AppClientTasksRouteImport } from './routes/_app.client.tasks'
+import { Route as AppClientSettingsRouteImport } from './routes/_app.client.settings'
+import { Route as AppClientLeadsRouteImport } from './routes/_app.client.leads'
+import { Route as AppClientDashboardRouteImport } from './routes/_app.client.dashboard'
+import { Route as AppClientCreditsRouteImport } from './routes/_app.client.credits'
+import { Route as AppClientChatRouteImport } from './routes/_app.client.chat'
+import { Route as AppAdminTenantsRouteImport } from './routes/_app.admin.tenants'
 
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClientLoginRoute = ClientLoginRouteImport.update({
+  id: '/client/login',
+  path: '/client/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppClientTasksRoute = AppClientTasksRouteImport.update({
+  id: '/client/tasks',
+  path: '/client/tasks',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientSettingsRoute = AppClientSettingsRouteImport.update({
+  id: '/client/settings',
+  path: '/client/settings',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientLeadsRoute = AppClientLeadsRouteImport.update({
+  id: '/client/leads',
+  path: '/client/leads',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientDashboardRoute = AppClientDashboardRouteImport.update({
+  id: '/client/dashboard',
+  path: '/client/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientCreditsRoute = AppClientCreditsRouteImport.update({
+  id: '/client/credits',
+  path: '/client/credits',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppClientChatRoute = AppClientChatRouteImport.update({
+  id: '/client/chat',
+  path: '/client/chat',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAdminTenantsRoute = AppAdminTenantsRouteImport.update({
+  id: '/admin/tenants',
+  path: '/admin/tenants',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/client/login': typeof ClientLoginRoute
+  '/admin/tenants': typeof AppAdminTenantsRoute
+  '/client/chat': typeof AppClientChatRoute
+  '/client/credits': typeof AppClientCreditsRoute
+  '/client/dashboard': typeof AppClientDashboardRoute
+  '/client/leads': typeof AppClientLeadsRoute
+  '/client/settings': typeof AppClientSettingsRoute
+  '/client/tasks': typeof AppClientTasksRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/client/login': typeof ClientLoginRoute
+  '/admin/tenants': typeof AppAdminTenantsRoute
+  '/client/chat': typeof AppClientChatRoute
+  '/client/credits': typeof AppClientCreditsRoute
+  '/client/dashboard': typeof AppClientDashboardRoute
+  '/client/leads': typeof AppClientLeadsRoute
+  '/client/settings': typeof AppClientSettingsRoute
+  '/client/tasks': typeof AppClientTasksRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/client/login': typeof ClientLoginRoute
+  '/_app/admin/tenants': typeof AppAdminTenantsRoute
+  '/_app/client/chat': typeof AppClientChatRoute
+  '/_app/client/credits': typeof AppClientCreditsRoute
+  '/_app/client/dashboard': typeof AppClientDashboardRoute
+  '/_app/client/leads': typeof AppClientLeadsRoute
+  '/_app/client/settings': typeof AppClientSettingsRoute
+  '/_app/client/tasks': typeof AppClientTasksRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/client/login'
+    | '/admin/tenants'
+    | '/client/chat'
+    | '/client/credits'
+    | '/client/dashboard'
+    | '/client/leads'
+    | '/client/settings'
+    | '/client/tasks'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/client/login'
+    | '/admin/tenants'
+    | '/client/chat'
+    | '/client/credits'
+    | '/client/dashboard'
+    | '/client/leads'
+    | '/client/settings'
+    | '/client/tasks'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/client/login'
+    | '/_app/admin/tenants'
+    | '/_app/client/chat'
+    | '/_app/client/credits'
+    | '/_app/client/dashboard'
+    | '/_app/client/leads'
+    | '/_app/client/settings'
+    | '/_app/client/tasks'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
+  ClientLoginRoute: typeof ClientLoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +164,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/client/login': {
+      id: '/client/login'
+      path: '/client/login'
+      fullPath: '/client/login'
+      preLoaderRoute: typeof ClientLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/client/tasks': {
+      id: '/_app/client/tasks'
+      path: '/client/tasks'
+      fullPath: '/client/tasks'
+      preLoaderRoute: typeof AppClientTasksRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/client/settings': {
+      id: '/_app/client/settings'
+      path: '/client/settings'
+      fullPath: '/client/settings'
+      preLoaderRoute: typeof AppClientSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/client/leads': {
+      id: '/_app/client/leads'
+      path: '/client/leads'
+      fullPath: '/client/leads'
+      preLoaderRoute: typeof AppClientLeadsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/client/dashboard': {
+      id: '/_app/client/dashboard'
+      path: '/client/dashboard'
+      fullPath: '/client/dashboard'
+      preLoaderRoute: typeof AppClientDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/client/credits': {
+      id: '/_app/client/credits'
+      path: '/client/credits'
+      fullPath: '/client/credits'
+      preLoaderRoute: typeof AppClientCreditsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/client/chat': {
+      id: '/_app/client/chat'
+      path: '/client/chat'
+      fullPath: '/client/chat'
+      preLoaderRoute: typeof AppClientChatRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/admin/tenants': {
+      id: '/_app/admin/tenants'
+      path: '/admin/tenants'
+      fullPath: '/admin/tenants'
+      preLoaderRoute: typeof AppAdminTenantsRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppAdminTenantsRoute: typeof AppAdminTenantsRoute
+  AppClientChatRoute: typeof AppClientChatRoute
+  AppClientCreditsRoute: typeof AppClientCreditsRoute
+  AppClientDashboardRoute: typeof AppClientDashboardRoute
+  AppClientLeadsRoute: typeof AppClientLeadsRoute
+  AppClientSettingsRoute: typeof AppClientSettingsRoute
+  AppClientTasksRoute: typeof AppClientTasksRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAdminTenantsRoute: AppAdminTenantsRoute,
+  AppClientChatRoute: AppClientChatRoute,
+  AppClientCreditsRoute: AppClientCreditsRoute,
+  AppClientDashboardRoute: AppClientDashboardRoute,
+  AppClientLeadsRoute: AppClientLeadsRoute,
+  AppClientSettingsRoute: AppClientSettingsRoute,
+  AppClientTasksRoute: AppClientTasksRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
+  ClientLoginRoute: ClientLoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
