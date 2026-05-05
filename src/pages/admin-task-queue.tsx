@@ -69,6 +69,26 @@ export function AdminTaskQueuePage() {
   const [tenantFilter, setTenantFilter] = useState<string>("all");
   const [from, setFrom] = useState("");
   const [selected, setSelected] = useState<AdminTask | null>(null);
+  const [savedLeadCount, setSavedLeadCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!selected) {
+      setSavedLeadCount(null);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { count, error } = await supabase
+        .from("leads")
+        .select("id", { count: "exact", head: true })
+        .eq("task_id", selected.id);
+      if (cancelled) return;
+      setSavedLeadCount(error ? null : count ?? 0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selected]);
 
   const load = async () => {
     setLoading(true);
