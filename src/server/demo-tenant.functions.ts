@@ -81,22 +81,3 @@ export const joinDemoWorkspace = createServerFn({ method: "POST" })
       membershipStatus: "joined",
     };
   });
-      .from("tenant_members")
-      .upsert(
-        { tenant_id: tenant.id, user_id: userId, role: "client_admin" },
-        { onConflict: "tenant_id,user_id" },
-      )
-      .select("role")
-      .single();
-
-    if (membershipError) throw new Error(membershipError.message);
-
-    return {
-      profileId: userId,
-      tenantId: tenant.id,
-      tenantName: tenant.name,
-      tenantSlug: tenant.slug,
-      tenantRole: membership.role,
-      membershipStatus: "joined",
-    };
-  });
