@@ -53,14 +53,6 @@ const ApprovalSchema = z.object({
   message: z.string().min(1).max(2000),
 });
 
-const ApprovalSchema = z.object({
-  action: z.literal("request_approval"),
-  task_id: z.string().uuid(),
-  result_summary: z.string().max(2000),
-  result_payload: z.any(),
-  message: z.string().min(1).max(2000),
-});
-
 const SaveLeadsSchema = z.object({
   action: z.literal("save_leads"),
   tenant_id: z.string().uuid(),
