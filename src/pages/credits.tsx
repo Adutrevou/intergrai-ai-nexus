@@ -69,7 +69,7 @@ export function CreditsPage() {
             <TableBody>
               {mockCredits.map((c) => (
                 <TableRow key={c.id}>
-                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{new Date(c.date).toLocaleDateString()}</TableCell>
+                  <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{formatDate(c.date)}</TableCell>
                   <TableCell>{c.description}</TableCell>
                   <TableCell className={cn("text-right tabular-nums font-medium", c.type === "credit" ? "text-success" : "text-foreground")}>
                     {c.type === "credit" ? "+" : "−"}{c.amount.toLocaleString()}
