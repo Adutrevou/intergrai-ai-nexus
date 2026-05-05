@@ -33,12 +33,15 @@ const clientItems = [
   { title: "Settings", url: "/client/settings", icon: Settings },
 ];
 
-const adminItems = [{ title: "Tenants", url: "/admin/tenants", icon: Building2 }];
+const adminItems = [
+  { title: "Tenants", url: "/admin/tenants", icon: Building2 },
+  { title: "Task Queue", url: "/admin/task-queue", icon: ListChecks },
+];
 
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (p: string) => pathname === p;
-  const { profile, user, membership, signOut } = useAuth();
+  const { profile, user, membership, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Member";
@@ -92,23 +95,25 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Intergrai Admin</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {adminItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Intergrai Admin</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.url}>
+                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                      <Link to={item.url}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">

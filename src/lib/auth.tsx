@@ -27,6 +27,7 @@ type AuthCtx = {
   user: User | null;
   profile: Profile | null;
   membership: Membership | null;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -55,18 +56,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [membership, setMembership] = useState<Membership | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const hydrate = async (s: Session | null) => {
     setSession(s);
     setUser(s?.user ?? null);
     if (s?.user) {
-      const [p, m] = await Promise.all([loadProfile(s.user.id), loadMembership(s.user.id)]);
+      const [p, m, r] = await Promise.all([
+        loadProfile(s.user.id),
+        loadMembership(s.user.id),
+        supabase.from("user_roles").select("role").eq("user_id", s.user.id).eq("role", "intergrai_admin").maybeSingle(),
+      ]);
       setProfile(p);
       setMembership(m);
+      setIsAdmin(!!r.data);
     } else {
       setProfile(null);
       setMembership(null);
+      setIsAdmin(false);
     }
   };
 
@@ -111,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider
-      value={{ loading, session, user, profile, membership, signIn, signUp, signOut, refresh }}
+      value={{ loading, session, user, profile, membership, isAdmin, signIn, signUp, signOut, refresh }}
     >
       {children}
     </Ctx.Provider>

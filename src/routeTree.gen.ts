@@ -18,6 +18,7 @@ import { Route as ClientDashboardRouteImport } from './routes/client.dashboard'
 import { Route as ClientCreditsRouteImport } from './routes/client.credits'
 import { Route as ClientChatRouteImport } from './routes/client.chat'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
+import { Route as AdminTaskQueueRouteImport } from './routes/admin.task-queue'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,9 +65,15 @@ const AdminTenantsRoute = AdminTenantsRouteImport.update({
   path: '/admin/tenants',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminTaskQueueRoute = AdminTaskQueueRouteImport.update({
+  id: '/admin/task-queue',
+  path: '/admin/task-queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin/task-queue': typeof AdminTaskQueueRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/client/chat': typeof ClientChatRoute
   '/client/credits': typeof ClientCreditsRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/task-queue': typeof AdminTaskQueueRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/client/chat': typeof ClientChatRoute
   '/client/credits': typeof ClientCreditsRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin/task-queue': typeof AdminTaskQueueRoute
   '/admin/tenants': typeof AdminTenantsRoute
   '/client/chat': typeof ClientChatRoute
   '/client/credits': typeof ClientCreditsRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin/task-queue'
     | '/admin/tenants'
     | '/client/chat'
     | '/client/credits'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin/task-queue'
     | '/admin/tenants'
     | '/client/chat'
     | '/client/credits'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin/task-queue'
     | '/admin/tenants'
     | '/client/chat'
     | '/client/credits'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminTaskQueueRoute: typeof AdminTaskQueueRoute
   AdminTenantsRoute: typeof AdminTenantsRoute
   ClientChatRoute: typeof ClientChatRoute
   ClientCreditsRoute: typeof ClientCreditsRoute
@@ -212,11 +225,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTenantsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/task-queue': {
+      id: '/admin/task-queue'
+      path: '/admin/task-queue'
+      fullPath: '/admin/task-queue'
+      preLoaderRoute: typeof AdminTaskQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminTaskQueueRoute: AdminTaskQueueRoute,
   AdminTenantsRoute: AdminTenantsRoute,
   ClientChatRoute: ClientChatRoute,
   ClientCreditsRoute: ClientCreditsRoute,
