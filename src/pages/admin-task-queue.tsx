@@ -158,10 +158,18 @@ export function AdminTaskQueuePage() {
   const simFail = useServerFn(simulateWorkerFail);
   const [simBusy, setSimBusy] = useState<string | null>(null);
 
+  const getAccessToken = async () => {
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) throw new Error("Not signed in");
+    return token;
+  };
+
   const runSimClaim = async () => {
     setSimBusy("claim");
     try {
-      const res = await simClaim({ data: {} });
+      const access_token = await getAccessToken();
+      const res = await simClaim({ data: { access_token } });
       if (res?.task) toast.success("Worker claimed a queued task");
       else toast.info("No queued tasks available to claim");
       load();
@@ -176,8 +184,9 @@ export function AdminTaskQueuePage() {
     if (!selected) return;
     setSimBusy("complete");
     try {
+      const access_token = await getAccessToken();
       await simComplete({
-        data: { task_id: selected.id, credits_used: selected.credits_estimated },
+        data: { access_token, task_id: selected.id, credits_used: selected.credits_estimated },
       });
       toast.success("Simulated worker completion");
       load();
@@ -192,7 +201,8 @@ export function AdminTaskQueuePage() {
     if (!selected) return;
     setSimBusy("fail");
     try {
-      await simFail({ data: { task_id: selected.id } });
+      const access_token = await getAccessToken();
+      await simFail({ data: { access_token, task_id: selected.id } });
       toast.success("Simulated worker failure");
       load();
     } catch (e) {
