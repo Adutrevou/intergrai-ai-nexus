@@ -305,21 +305,19 @@ export async function saveLeads(input: {
   if (!tenant) throw new Error("Tenant not found");
 
   // Pull existing leads for this tenant for duplicate checking
+  // Dedup key: company_name + email (case-insensitive) per tenant
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("leads")
-    .select("email, company_name, website")
+    .select("email, company_name")
     .eq("tenant_id", input.tenant_id);
   if (exErr) throw new Error(exErr.message);
 
-  const emailSet = new Set<string>();
-  const compWebSet = new Set<string>();
+  const dupKey = (company?: string | null, email?: string | null) =>
+    `${(company ?? "").toLowerCase().trim()}|${(email ?? "").toLowerCase().trim()}`;
+
+  const seen = new Set<string>();
   for (const r of existing ?? []) {
-    if (r.email) emailSet.add(r.email.toLowerCase().trim());
-    if (r.company_name && r.website) {
-      compWebSet.add(
-        `${r.company_name.toLowerCase().trim()}|${r.website.toLowerCase().trim()}`,
-      );
-    }
+    seen.add(dupKey(r.company_name, r.email));
   }
 
   const toInsert: Array<{
