@@ -1,12 +1,15 @@
 export type TaskStatus = "queued" | "running" | "needs_approval" | "completed" | "failed";
+export type TaskType = "lead_search" | "outreach_draft" | "summary" | "enrichment" | "research" | "general";
 
 export interface Task {
   id: string;
   tenant_id: string;
   title: string;
   prompt: string;
+  task_type: TaskType;
   status: TaskStatus;
   created_at: string;
+  created_by: string;
   estimated_credits: number;
   credits_used: number;
   result_summary?: string;
