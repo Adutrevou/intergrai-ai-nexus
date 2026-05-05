@@ -338,14 +338,38 @@ export function AdminTaskQueuePage() {
                 <Section title="Credits & timing">
                   <KV k="Estimated" v={selected.credits_estimated.toString()} />
                   <KV k="Used" v={selected.credits_used.toString()} />
+                  <KV k="Priority" v={selected.priority.toString()} />
+                  <KV k="Retries" v={`${selected.retry_count} / ${selected.max_retries}`} />
                   <KV k="Created by" v={selected.created_by_name ?? "—"} />
                   <KV k="Created at" v={formatDateTime(selected.created_at)} />
                 </Section>
 
+                <Section title="Worker">
+                  <KV k="Worker ID" v={selected.worker_id ?? "—"} mono />
+                  <KV k="Started at" v={selected.started_at ? formatDateTime(selected.started_at) : "—"} />
+                  <KV k="Completed at" v={selected.completed_at ? formatDateTime(selected.completed_at) : "—"} />
+                  <KV k="Failed at" v={selected.failed_at ? formatDateTime(selected.failed_at) : "—"} />
+                  {selected.error_message && (
+                    <p className="rounded-md border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">
+                      {selected.error_message}
+                    </p>
+                  )}
+                </Section>
+
+                <Section title="Result payload">
+                  <pre className="max-h-48 overflow-auto rounded-md border border-border bg-muted/30 p-3 font-mono text-[11px] leading-relaxed">
+                    {selected.result_payload
+                      ? JSON.stringify(selected.result_payload, null, 2)
+                      : "No payload yet."}
+                  </pre>
+                </Section>
+
                 <Section title="Worker logs" icon={<Terminal className="h-3.5 w-3.5" />}>
-                  <div className="rounded-md border border-dashed border-border bg-muted/30 p-4 font-mono text-[11px] leading-relaxed text-muted-foreground">
-                    [placeholder] Worker not connected. Logs will stream here once Mr Krabs is wired up.
-                  </div>
+                  <pre className="max-h-48 overflow-auto rounded-md border border-dashed border-border bg-muted/30 p-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+                    {Array.isArray(selected.worker_logs) && selected.worker_logs.length > 0
+                      ? JSON.stringify(selected.worker_logs, null, 2)
+                      : "[placeholder] Worker not connected. Logs will stream here once the AI worker is wired up."}
+                  </pre>
                 </Section>
 
                 <Separator />
