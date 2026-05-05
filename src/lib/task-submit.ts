@@ -46,9 +46,11 @@ export function generateTitle(prompt: string): string {
 }
 
 const listeners = new Set<() => void>();
-export function onTasksChanged(cb: () => void) {
+export function onTasksChanged(cb: () => void): () => void {
   listeners.add(cb);
-  return () => listeners.delete(cb);
+  return () => {
+    listeners.delete(cb);
+  };
 }
 function emitTasksChanged() {
   for (const l of listeners) l();
