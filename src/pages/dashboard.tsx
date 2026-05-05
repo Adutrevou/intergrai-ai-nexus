@@ -30,7 +30,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useTenantDashboard, type DbTask, type DbLead } from "@/lib/use-tenant-dashboard";
-import { submitTask } from "@/lib/task-submit";
+import { submitTask, estimateCredits, taskTypeDisplay } from "@/lib/task-submit";
 
 export function DashboardPage() {
   const { profile, membership } = useAuth();
@@ -221,9 +221,10 @@ export function DashboardPage() {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();
             }}
           />
+          <EstimatePreview prompt={prompt} balance={tenant.credit_balance} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Tasks are reviewed, queued, and processed based on your available credits.
+              Credits are checked before queuing. Final credits are deducted once the AI worker processes the task.
             </p>
             <Button onClick={submit} disabled={!prompt.trim() || submitting}>
               <Send className="mr-1.5 h-4 w-4" /> Queue task
@@ -448,5 +449,33 @@ function ScoreBadge({ score }: { score: number }) {
     >
       {score}
     </span>
+  );
+}
+
+function EstimatePreview({ prompt, balance }: { prompt: string; balance: number }) {
+  const trimmed = prompt.trim();
+  if (trimmed.length < 3) return null;
+  const { type, credits } = estimateCredits(trimmed);
+  const insufficient = balance < credits;
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border px-3 py-2 text-xs",
+        insufficient
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : "border-border bg-muted/40 text-muted-foreground",
+      )}
+    >
+      <span>
+        Task type: <span className="font-medium text-foreground">{taskTypeDisplay[type]}</span>
+      </span>
+      <span>
+        Estimated credits: <span className="font-semibold tabular-nums text-foreground">{credits}</span>
+      </span>
+      <span className="ml-auto tabular-nums">
+        Balance: {balance.toLocaleString()}
+        {insufficient && " — not enough credits"}
+      </span>
+    </div>
   );
 }

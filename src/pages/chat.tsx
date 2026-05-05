@@ -9,7 +9,8 @@ import { formatDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { submitTask, taskTypeDisplay, onTasksChanged, type ClassifiedTaskType } from "@/lib/task-submit";
+import { submitTask, taskTypeDisplay, onTasksChanged, estimateCredits, type ClassifiedTaskType } from "@/lib/task-submit";
+import { cn } from "@/lib/utils";
 
 const examples = [
   "Find me 25 hospitality leads in Johannesburg",
@@ -34,7 +35,17 @@ export function ChatPage() {
   const [submitting, setSubmitting] = useState(false);
   const [tasks, setTasks] = useState<RecentTask[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
+  const [balance, setBalance] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const loadBalance = async () => {
+    if (!tenantId) {
+      setBalance(null);
+      return;
+    }
+    const { data } = await supabase.from("tenants").select("credit_balance").eq("id", tenantId).maybeSingle();
+    setBalance(data?.credit_balance ?? null);
+  };
 
   const loadTasks = async () => {
     if (!tenantId) {
@@ -55,7 +66,11 @@ export function ChatPage() {
 
   useEffect(() => {
     loadTasks();
-    const unsub = onTasksChanged(() => loadTasks());
+    loadBalance();
+    const unsub = onTasksChanged(() => {
+      loadTasks();
+      loadBalance();
+    });
     return () => {
       unsub();
     };
@@ -115,9 +130,10 @@ export function ChatPage() {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(prompt);
             }}
           />
+          <EstimatePreview prompt={prompt} balance={balance} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Tasks are reviewed, queued, and processed based on your available credits.
+              Credits are checked before queuing. Final credits are deducted once the AI worker processes the task.
             </p>
             <Button onClick={() => submit(prompt)} disabled={!prompt.trim() || submitting || !tenantId}>
               <Send className="mr-1.5 h-4 w-4" /> Queue task
@@ -188,6 +204,36 @@ export function ChatPage() {
           )}
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function EstimatePreview({ prompt, balance }: { prompt: string; balance: number | null }) {
+  const trimmed = prompt.trim();
+  if (trimmed.length < 3) return null;
+  const { type, credits } = estimateCredits(trimmed);
+  const insufficient = balance !== null && balance < credits;
+  return (
+    <div
+      className={cn(
+        "flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border px-3 py-2 text-xs",
+        insufficient
+          ? "border-destructive/30 bg-destructive/10 text-destructive"
+          : "border-border bg-muted/40 text-muted-foreground",
+      )}
+    >
+      <span>
+        Task type: <span className="font-medium text-foreground">{taskTypeDisplay[type]}</span>
+      </span>
+      <span>
+        Estimated credits: <span className="font-semibold tabular-nums text-foreground">{credits}</span>
+      </span>
+      {balance !== null && (
+        <span className="ml-auto tabular-nums">
+          Balance: {balance.toLocaleString()}
+          {insufficient && " — not enough credits"}
+        </span>
+      )}
     </div>
   );
 }
