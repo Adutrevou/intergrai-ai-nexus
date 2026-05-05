@@ -17,7 +17,8 @@ export const joinDemoWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DemoTenantJoinResult> => {
     const { claims, userId } = context;
-    const signedInEmail = typeof claims.email === "string" ? claims.email : null;
+    const claimEmail = (claims as { email?: unknown }).email;
+    const signedInEmail = typeof claimEmail === "string" ? claimEmail : null;
 
     if (!userId) {
       throw new Error("Authentication required to join the demo workspace.");
