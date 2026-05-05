@@ -1,14 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import {
-  claimNextTask,
-  completeTask,
-  failTask,
-} from "@/server/worker.server";
+import { z } from "zod";
 
 async function assertAdminFromToken(accessToken: string) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const SUPABASE_URL = process.env.SUPABASE_URL!;
   const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY!;
   const sb = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
@@ -40,6 +35,7 @@ export const simulateWorkerClaim = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
+    const { claimNextTask } = await import("@/server/worker.server");
     await assertAdminFromToken(data.access_token);
     return claimNextTask({ worker_id: SIM_WORKER_ID, tenant_id: data.tenant_id });
   });
@@ -55,6 +51,7 @@ export const simulateWorkerComplete = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
+    const { completeTask } = await import("@/server/worker.server");
     await assertAdminFromToken(data.access_token);
     return completeTask({
       task_id: data.task_id,
@@ -74,6 +71,7 @@ export const simulateWorkerFail = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data }) => {
+    const { failTask } = await import("@/server/worker.server");
     await assertAdminFromToken(data.access_token);
     return failTask({
       task_id: data.task_id,

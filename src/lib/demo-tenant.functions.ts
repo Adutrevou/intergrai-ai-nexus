@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const DEMO_TENANT_SLUG = "acme_hospitality_demo";
 
@@ -16,6 +15,7 @@ export type DemoTenantJoinResult = {
 export const joinDemoWorkspace = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }): Promise<DemoTenantJoinResult> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { claims, userId } = context;
     const claimEmail = (claims as { email?: unknown }).email;
     const signedInEmail = typeof claimEmail === "string" ? claimEmail : null;

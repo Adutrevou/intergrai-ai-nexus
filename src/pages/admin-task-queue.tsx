@@ -31,7 +31,7 @@ import {
   simulateWorkerClaim,
   simulateWorkerComplete,
   simulateWorkerFail,
-} from "@/server/admin-worker-sim.functions";
+} from "@/lib/admin-worker-sim.functions";
 
 type AdminTask = {
   id: string;

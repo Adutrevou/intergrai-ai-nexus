@@ -6,14 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { joinDemoWorkspace } from "@/server/demo-tenant.functions";
+import { joinDemoWorkspace } from "@/lib/demo-tenant.functions";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
 
 const DEMO_SLUG = "acme_hospitality_demo";
 
 export function SettingsPage() {
   const { user, profile, membership, refresh } = useAuth();
   const [joining, setJoining] = useState(false);
+  const joinDemo = useServerFn(joinDemoWorkspace);
 
   const isDemoMember = membership?.tenant?.slug === DEMO_SLUG;
 
@@ -29,7 +31,7 @@ export function SettingsPage() {
         return;
       }
 
-      const joined = await joinDemoWorkspace({
+      const joined = await joinDemo({
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
