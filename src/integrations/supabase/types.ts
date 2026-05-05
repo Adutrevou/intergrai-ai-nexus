@@ -403,6 +403,17 @@ export type Database = {
         Args: { _tenant_id: string; _user_id: string }
         Returns: boolean
       }
+      join_demo_tenant_membership: {
+        Args: never
+        Returns: {
+          membership_status: string
+          profile_id: string
+          tenant_id: string
+          tenant_name: string
+          tenant_role: string
+          tenant_slug: string
+        }[]
+      }
     }
     Enums: {
       app_role: "intergrai_admin" | "client_user"
