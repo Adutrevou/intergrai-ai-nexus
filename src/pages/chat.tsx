@@ -9,7 +9,8 @@ import { formatDateTime } from "@/lib/format";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
-import { submitTask, taskTypeDisplay, onTasksChanged, type ClassifiedTaskType } from "@/lib/task-submit";
+import { submitTask, taskTypeDisplay, onTasksChanged, estimateCredits, type ClassifiedTaskType } from "@/lib/task-submit";
+import { cn } from "@/lib/utils";
 
 const examples = [
   "Find me 25 hospitality leads in Johannesburg",
