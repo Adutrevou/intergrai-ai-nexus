@@ -271,6 +271,130 @@ export async function requestApproval(input: {
   return { ok: true };
 }
 
+export type SaveLeadInput = {
+  company_name?: string | null;
+  contact_name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  industry?: string | null;
+  location?: string | null;
+  status?: string | null;
+  lead_score?: number | null;
+  source?: string | null;
+};
+
+export async function saveLeads(input: {
+  tenant_id: string;
+  task_id: string;
+  leads: SaveLeadInput[];
+}) {
+  // Validate task belongs to tenant
+  const task = await loadTask(input.task_id);
+  if (task.tenant_id !== input.tenant_id) {
+    throw new Error("task_id does not belong to tenant_id");
+  }
+
+  // Validate tenant exists
+  const { data: tenant, error: tErr } = await supabaseAdmin
+    .from("tenants")
+    .select("id")
+    .eq("id", input.tenant_id)
+    .maybeSingle();
+  if (tErr) throw new Error(tErr.message);
+  if (!tenant) throw new Error("Tenant not found");
+
+  // Pull existing leads for this tenant for duplicate checking
+  const { data: existing, error: exErr } = await supabaseAdmin
+    .from("leads")
+    .select("email, company_name, website")
+    .eq("tenant_id", input.tenant_id);
+  if (exErr) throw new Error(exErr.message);
+
+  const emailSet = new Set<string>();
+  const compWebSet = new Set<string>();
+  for (const r of existing ?? []) {
+    if (r.email) emailSet.add(r.email.toLowerCase().trim());
+    if (r.company_name && r.website) {
+      compWebSet.add(
+        `${r.company_name.toLowerCase().trim()}|${r.website.toLowerCase().trim()}`,
+      );
+    }
+  }
+
+  const toInsert: Array<{
+    tenant_id: string;
+    task_id: string;
+    company_name: string | null;
+    contact_name: string | null;
+    email: string | null;
+    phone: string | null;
+    website: string | null;
+    industry: string | null;
+    location: string | null;
+    status: string;
+    lead_score: number | null;
+    source: string | null;
+  }> = [];
+  let duplicates = 0;
+  for (const lead of input.leads) {
+    const email = lead.email?.toLowerCase().trim() ?? null;
+    const company = lead.company_name?.toLowerCase().trim() ?? null;
+    const website = lead.website?.toLowerCase().trim() ?? null;
+
+    if (email && emailSet.has(email)) {
+      duplicates++;
+      continue;
+    }
+    if (!email && company && website && compWebSet.has(`${company}|${website}`)) {
+      duplicates++;
+      continue;
+    }
+
+    toInsert.push({
+      tenant_id: input.tenant_id,
+      task_id: input.task_id,
+      company_name: lead.company_name ?? null,
+      contact_name: lead.contact_name ?? null,
+      email: lead.email ?? null,
+      phone: lead.phone ?? null,
+      website: lead.website ?? null,
+      industry: lead.industry ?? null,
+      location: lead.location ?? null,
+      status: lead.status ?? "new",
+      lead_score: lead.lead_score ?? null,
+      source: lead.source ?? "mr_krabs",
+    });
+
+    if (email) emailSet.add(email);
+    if (company && website) compWebSet.add(`${company}|${website}`);
+  }
+
+  let inserted = 0;
+  if (toInsert.length > 0) {
+    const { error: insErr, count } = await supabaseAdmin
+      .from("leads")
+      .insert(toInsert, { count: "exact" });
+    if (insErr) throw new Error(insErr.message);
+    inserted = count ?? toInsert.length;
+  }
+
+  const skipped = duplicates;
+  const logs = appendLog(task.worker_logs, {
+    ts: nowIso(),
+    level: "info",
+    message: `Saved ${inserted} leads to client leads table. Skipped ${skipped} duplicates.`,
+    worker_id: task.worker_id ?? undefined,
+  });
+  const { error: logErr } = await supabaseAdmin
+    .from("client_tasks")
+    .update({ worker_logs: logs })
+    .eq("id", input.task_id);
+  if (logErr) throw new Error(logErr.message);
+
+  return { ok: true, inserted, skipped, duplicates };
+}
+
 export function verifyWorkerKey(headerValue: string | null): boolean {
   const expected = process.env.INTERGRAI_WORKER_KEY;
   if (!expected) return false;

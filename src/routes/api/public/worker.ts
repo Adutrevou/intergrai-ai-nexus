@@ -5,6 +5,7 @@ import {
   completeTask,
   failTask,
   requestApproval,
+  saveLeads,
   updateTaskLog,
   verifyWorkerKey,
 } from "@/server/worker.server";
@@ -52,12 +53,36 @@ const ApprovalSchema = z.object({
   message: z.string().min(1).max(2000),
 });
 
+const SaveLeadsSchema = z.object({
+  action: z.literal("save_leads"),
+  tenant_id: z.string().uuid(),
+  task_id: z.string().uuid(),
+  leads: z
+    .array(
+      z.object({
+        company_name: z.string().min(1).max(500).optional().nullable(),
+        contact_name: z.string().max(500).optional().nullable(),
+        email: z.string().max(500).optional().nullable(),
+        phone: z.string().max(100).optional().nullable(),
+        website: z.string().max(1000).optional().nullable(),
+        industry: z.string().max(255).optional().nullable(),
+        location: z.string().max(500).optional().nullable(),
+        status: z.string().max(50).optional().nullable(),
+        lead_score: z.number().int().min(0).max(100).optional().nullable(),
+        source: z.string().max(100).optional().nullable(),
+      }),
+    )
+    .min(1)
+    .max(500),
+});
+
 const Body = z.discriminatedUnion("action", [
   ClaimSchema,
   LogSchema,
   CompleteSchema,
   FailSchema,
   ApprovalSchema,
+  SaveLeadsSchema,
 ]);
 
 export const Route = createFileRoute("/api/public/worker")({
@@ -91,6 +116,8 @@ export const Route = createFileRoute("/api/public/worker")({
               return json(await failTask(input));
             case "request_approval":
               return json(await requestApproval(input));
+            case "save_leads":
+              return json(await saveLeads(input));
           }
         } catch (e) {
           const message = e instanceof Error ? e.message : "Worker error";
