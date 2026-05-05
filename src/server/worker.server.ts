@@ -305,21 +305,19 @@ export async function saveLeads(input: {
   if (!tenant) throw new Error("Tenant not found");
 
   // Pull existing leads for this tenant for duplicate checking
+  // Dedup key: company_name + email (case-insensitive) per tenant
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("leads")
-    .select("email, company_name, website")
+    .select("email, company_name")
     .eq("tenant_id", input.tenant_id);
   if (exErr) throw new Error(exErr.message);
 
-  const emailSet = new Set<string>();
-  const compWebSet = new Set<string>();
+  const dupKey = (company?: string | null, email?: string | null) =>
+    `${(company ?? "").toLowerCase().trim()}|${(email ?? "").toLowerCase().trim()}`;
+
+  const seen = new Set<string>();
   for (const r of existing ?? []) {
-    if (r.email) emailSet.add(r.email.toLowerCase().trim());
-    if (r.company_name && r.website) {
-      compWebSet.add(
-        `${r.company_name.toLowerCase().trim()}|${r.website.toLowerCase().trim()}`,
-      );
-    }
+    seen.add(dupKey(r.company_name, r.email));
   }
 
   const toInsert: Array<{
@@ -338,18 +336,12 @@ export async function saveLeads(input: {
   }> = [];
   let duplicates = 0;
   for (const lead of input.leads) {
-    const email = lead.email?.toLowerCase().trim() ?? null;
-    const company = lead.company_name?.toLowerCase().trim() ?? null;
-    const website = lead.website?.toLowerCase().trim() ?? null;
-
-    if (email && emailSet.has(email)) {
+    const key = dupKey(lead.company_name, lead.email);
+    if (seen.has(key)) {
       duplicates++;
       continue;
     }
-    if (!email && company && website && compWebSet.has(`${company}|${website}`)) {
-      duplicates++;
-      continue;
-    }
+    seen.add(key);
 
     toInsert.push({
       tenant_id: input.tenant_id,
@@ -365,9 +357,6 @@ export async function saveLeads(input: {
       lead_score: lead.lead_score ?? null,
       source: lead.source ?? "mr_krabs",
     });
-
-    if (email) emailSet.add(email);
-    if (company && website) compWebSet.add(`${company}|${website}`);
   }
 
   let inserted = 0;
@@ -379,11 +368,10 @@ export async function saveLeads(input: {
     inserted = count ?? toInsert.length;
   }
 
-  const skipped = duplicates;
   const logs = appendLog(task.worker_logs, {
     ts: nowIso(),
     level: "info",
-    message: `Saved ${inserted} leads to client leads table. Skipped ${skipped} duplicates.`,
+    message: `Saved ${inserted} leads to client platform`,
     worker_id: task.worker_id ?? undefined,
   });
   const { error: logErr } = await supabaseAdmin
@@ -392,7 +380,7 @@ export async function saveLeads(input: {
     .eq("id", input.task_id);
   if (logErr) throw new Error(logErr.message);
 
-  return { ok: true, inserted, skipped, duplicates };
+  return { ok: true, inserted, skipped_duplicates: duplicates };
 }
 
 export function verifyWorkerKey(headerValue: string | null): boolean {
