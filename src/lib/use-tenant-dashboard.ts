@@ -106,6 +106,14 @@ export function useTenantDashboard() {
 
   useEffect(() => {
     load();
+    // Reload when task store emits change
+    let unsub: (() => void) | undefined;
+    import("@/lib/task-submit").then((m) => {
+      unsub = m.onTasksChanged(() => load());
+    });
+    return () => {
+      unsub?.();
+    };
   }, [load]);
 
   return { data, loading, error, hasTenant: !!tenantId, userId: user?.id ?? null, reload: load };
