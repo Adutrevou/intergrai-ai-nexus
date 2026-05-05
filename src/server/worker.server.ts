@@ -322,7 +322,20 @@ export async function saveLeads(input: {
     }
   }
 
-  const toInsert: Array<Record<string, unknown>> = [];
+  const toInsert: Array<{
+    tenant_id: string;
+    task_id: string;
+    company_name: string | null;
+    contact_name: string | null;
+    email: string | null;
+    phone: string | null;
+    website: string | null;
+    industry: string | null;
+    location: string | null;
+    status: string;
+    lead_score: number | null;
+    source: string | null;
+  }> = [];
   let duplicates = 0;
   for (const lead of input.leads) {
     const email = lead.email?.toLowerCase().trim() ?? null;
