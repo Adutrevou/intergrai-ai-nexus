@@ -68,49 +68,79 @@ export type Database = {
       }
       client_tasks: {
         Row: {
+          completed_at: string | null
           created_at: string
           created_by_name: string | null
           credits_estimated: number
           credits_used: number
+          error_message: string | null
+          failed_at: string | null
           id: string
+          max_retries: number
+          priority: number
           prompt: string
+          result_payload: Json | null
           result_summary: string | null
+          retry_count: number
+          started_at: string | null
           status: string
           task_type: string | null
           tenant_id: string
           title: string | null
           updated_at: string
           user_id: string | null
+          worker_id: string | null
+          worker_logs: Json
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           created_by_name?: string | null
           credits_estimated?: number
           credits_used?: number
+          error_message?: string | null
+          failed_at?: string | null
           id?: string
+          max_retries?: number
+          priority?: number
           prompt: string
+          result_payload?: Json | null
           result_summary?: string | null
+          retry_count?: number
+          started_at?: string | null
           status?: string
           task_type?: string | null
           tenant_id: string
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          worker_id?: string | null
+          worker_logs?: Json
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           created_by_name?: string | null
           credits_estimated?: number
           credits_used?: number
+          error_message?: string | null
+          failed_at?: string | null
           id?: string
+          max_retries?: number
+          priority?: number
           prompt?: string
+          result_payload?: Json | null
           result_summary?: string | null
+          retry_count?: number
+          started_at?: string | null
           status?: string
           task_type?: string | null
           tenant_id?: string
           title?: string | null
           updated_at?: string
           user_id?: string | null
+          worker_id?: string | null
+          worker_logs?: Json
         }
         Relationships: [
           {
