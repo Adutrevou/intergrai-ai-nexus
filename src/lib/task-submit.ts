@@ -37,10 +37,43 @@ export function estimateCredits(prompt: string): { type: ClassifiedTaskType; cre
 
 export function classifyTask(prompt: string): ClassifiedTaskType {
   const p = prompt.toLowerCase();
-  if (/\b(leads?|prospects?|contacts?|companies|company)\b/.test(p)) return "lead_generation";
+
+  // 1. Summary / reporting intent FIRST — beats lead_generation when reviewing existing data.
+  const summaryPatterns = [
+    /\bsummari[sz]e\b/,
+    /\bsummary\b/,
+    /\breport\b/,
+    /\breview\b/,
+    /\boverview\b/,
+    /\bshow me\b/,
+    /\bcurrent pipeline\b/,
+    /\bpipeline\b/,
+    /\bcurrent leads\b/,
+    /\bmy leads\b/,
+    /\bexisting leads\b/,
+    /\blead pipeline\b/,
+  ];
+  if (summaryPatterns.some((re) => re.test(p))) return "summary";
+
+  // 2. Outreach intent.
   if (/\b(outreach|emails?|messages?|campaigns?)\b/.test(p)) return "outreach_draft";
-  if (/\b(summari[sz]e|summary|report)\b/.test(p)) return "summary";
+
+  // 3. Lead generation — only when the prompt clearly asks to FIND/SOURCE/GENERATE new leads.
+  //    The bare word "lead(s)" must not be enough.
+  const leadGenPatterns = [
+    /\bfind\b[^.]*\b(leads?|contacts?|companies|company|prospects?)\b/,
+    /\bsource\b[^.]*\bleads?\b/,
+    /\bgenerate\b[^.]*\bleads?\b/,
+    /\bget\b[^.]*\bnew\b[^.]*\bleads?\b/,
+    /\bnew\b[^.]*\bleads?\b/,
+    /\bbuild\b[^.]*\b(lead list|list of leads|leads?)\b/,
+    /\bprospect\b/,
+  ];
+  if (leadGenPatterns.some((re) => re.test(p))) return "lead_generation";
+
+  // 4. Research.
   if (/\b(research|analy[sz]e|analysis)\b/.test(p)) return "research";
+
   return "general_task";
 }
 
