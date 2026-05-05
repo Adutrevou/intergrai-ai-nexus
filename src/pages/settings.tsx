@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
+import { joinDemoWorkspace } from "@/server/demo-tenant.functions";
 import { toast } from "sonner";
 
 const DEMO_SLUG = "acme_hospitality_demo";
@@ -20,28 +21,22 @@ export function SettingsPage() {
     if (!user) return;
     setJoining(true);
     try {
-      const { data: tenant, error: tErr } = await supabase
-        .from("tenants")
-        .select("id")
-        .eq("slug", DEMO_SLUG)
-        .maybeSingle();
-      if (tErr || !tenant) {
-        toast.error("Demo workspace not found");
+      const { data } = await supabase.auth.getSession();
+      const accessToken = data.session?.access_token;
+
+      if (!accessToken) {
+        toast.error("Please sign in before joining the demo workspace");
         return;
       }
-      // Idempotent: rely on UNIQUE(tenant_id, user_id)
-      const { error: mErr } = await supabase
-        .from("tenant_members")
-        .upsert(
-          { tenant_id: tenant.id, user_id: user.id, role: "client_admin" },
-          { onConflict: "tenant_id,user_id" }
-        );
-      if (mErr) {
-        toast.error(mErr.message);
-        return;
-      }
-      toast.success("Joined Acme Hospitality Group (demo)");
+
+      const joined = await joinDemoWorkspace({
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      toast.success(`Joined ${joined.tenantName} (demo)`);
       await refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to join demo workspace");
     } finally {
       setJoining(false);
     }
