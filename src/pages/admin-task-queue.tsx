@@ -26,6 +26,12 @@ import { formatDateTime } from "@/lib/format";
 import { taskTypeDisplay, type ClassifiedTaskType } from "@/lib/task-submit";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  simulateWorkerClaim,
+  simulateWorkerComplete,
+  simulateWorkerFail,
+} from "@/server/admin-worker-sim.functions";
 
 type AdminTask = {
   id: string;
@@ -147,6 +153,55 @@ export function AdminTaskQueuePage() {
     load();
   };
 
+  const simClaim = useServerFn(simulateWorkerClaim);
+  const simComplete = useServerFn(simulateWorkerComplete);
+  const simFail = useServerFn(simulateWorkerFail);
+  const [simBusy, setSimBusy] = useState<string | null>(null);
+
+  const runSimClaim = async () => {
+    setSimBusy("claim");
+    try {
+      const res = await simClaim({ data: {} });
+      if (res?.task) toast.success("Worker claimed a queued task");
+      else toast.info("No queued tasks available to claim");
+      load();
+    } catch (e) {
+      toast.error("Simulate claim failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
+  const runSimComplete = async () => {
+    if (!selected) return;
+    setSimBusy("complete");
+    try {
+      await simComplete({
+        data: { task_id: selected.id, credits_used: selected.credits_estimated },
+      });
+      toast.success("Simulated worker completion");
+      load();
+    } catch (e) {
+      toast.error("Simulate complete failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
+  const runSimFail = async () => {
+    if (!selected) return;
+    setSimBusy("fail");
+    try {
+      await simFail({ data: { task_id: selected.id } });
+      toast.success("Simulated worker failure");
+      load();
+    } catch (e) {
+      toast.error("Simulate fail failed", { description: (e as Error).message });
+    } finally {
+      setSimBusy(null);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center py-24 text-muted-foreground">
@@ -194,6 +249,30 @@ export function AdminTaskQueuePage() {
         <SummaryCard icon={<CheckCircle2 className="h-4 w-4" />} label="Completed this month" value={counts.completed_month} tone="success" />
         <SummaryCard icon={<Coins className="h-4 w-4" />} label="Credits reserved" value={counts.reserved.toLocaleString()} tone="info" />
       </div>
+
+      <Card className="border-dashed">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Worker API test panel</CardTitle>
+          <CardDescription>
+            Calls the real backend worker functions server-side. The worker key is never sent
+            to the browser. Pick a task in the table to enable complete/fail.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={runSimClaim} disabled={simBusy === "claim"}>
+            {simBusy === "claim" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <PlayCircle className="mr-1.5 h-4 w-4" />}
+            Simulate worker claim
+          </Button>
+          <Button size="sm" variant="outline" onClick={runSimComplete} disabled={!selected || simBusy === "complete"}>
+            {simBusy === "complete" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-1.5 h-4 w-4" />}
+            Simulate worker complete
+          </Button>
+          <Button size="sm" variant="outline" onClick={runSimFail} disabled={!selected || simBusy === "fail"}>
+            {simBusy === "fail" ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <XCircle className="mr-1.5 h-4 w-4" />}
+            Simulate worker fail
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
