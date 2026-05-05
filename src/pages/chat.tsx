@@ -35,7 +35,17 @@ export function ChatPage() {
   const [submitting, setSubmitting] = useState(false);
   const [tasks, setTasks] = useState<RecentTask[]>([]);
   const [loadingTasks, setLoadingTasks] = useState(true);
+  const [balance, setBalance] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  const loadBalance = async () => {
+    if (!tenantId) {
+      setBalance(null);
+      return;
+    }
+    const { data } = await supabase.from("tenants").select("credit_balance").eq("id", tenantId).maybeSingle();
+    setBalance(data?.credit_balance ?? null);
+  };
 
   const loadTasks = async () => {
     if (!tenantId) {
