@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   MessageSquarePlus,
@@ -8,6 +8,7 @@ import {
   Settings,
   Building2,
   Sparkles,
+  LogOut,
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,7 +22,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { currentTenant } from "@/lib/mock-data";
+import { useAuth } from "@/lib/auth";
 
 const clientItems = [
   { title: "Dashboard", url: "/client/dashboard", icon: LayoutDashboard },
@@ -37,6 +38,23 @@ const adminItems = [{ title: "Tenants", url: "/admin/tenants", icon: Building2 }
 export function AppSidebar() {
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (p: string) => pathname === p;
+  const { profile, user, membership, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const displayName = profile?.full_name || user?.email?.split("@")[0] || "Member";
+  const displayEmail = profile?.email || user?.email || "";
+  const workspaceName = membership?.tenant?.name || "No workspace";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate({ to: "/client/login" });
+  };
 
   return (
     <Sidebar collapsible="icon">
@@ -74,40 +92,41 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {currentTenant.is_intergrai_admin && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Intergrai Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminItems.map((item) => (
-                  <SidebarMenuItem key={item.url}>
-                    <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
-                      <Link to={item.url}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
+        <SidebarGroup>
+          <SidebarGroupLabel>Intergrai Admin</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {adminItems.map((item) => (
+                <SidebarMenuItem key={item.url}>
+                  <SidebarMenuButton asChild isActive={isActive(item.url)} tooltip={item.title}>
+                    <Link to={item.url}>
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border">
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-medium text-accent-foreground">
-            {currentTenant.user.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)}
+            {initials || "U"}
           </div>
-          <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-            <span className="truncate text-xs font-medium">{currentTenant.user.name}</span>
-            <span className="truncate text-[11px] text-muted-foreground">{currentTenant.name}</span>
+          <div className="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden">
+            <span className="truncate text-xs font-medium">{displayName}</span>
+            <span className="truncate text-[11px] text-muted-foreground">{displayEmail || workspaceName}</span>
           </div>
+          <button
+            onClick={handleSignOut}
+            title="Sign out"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground group-data-[collapsible=icon]:hidden"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+          </button>
         </div>
       </SidebarFooter>
     </Sidebar>

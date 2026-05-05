@@ -1,11 +1,52 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { currentTenant } from "@/lib/mock-data";
+import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/lib/auth";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const DEMO_SLUG = "acme_hospitality_demo";
+
 export function SettingsPage() {
+  const { user, profile, membership, refresh } = useAuth();
+  const [joining, setJoining] = useState(false);
+
+  const isDemoMember = membership?.tenant?.slug === DEMO_SLUG;
+
+  const handleJoinDemo = async () => {
+    if (!user) return;
+    setJoining(true);
+    try {
+      const { data: tenant, error: tErr } = await supabase
+        .from("tenants")
+        .select("id")
+        .eq("slug", DEMO_SLUG)
+        .maybeSingle();
+      if (tErr || !tenant) {
+        toast.error("Demo workspace not found");
+        return;
+      }
+      // Idempotent: rely on UNIQUE(tenant_id, user_id)
+      const { error: mErr } = await supabase
+        .from("tenant_members")
+        .upsert(
+          { tenant_id: tenant.id, user_id: user.id, role: "client_admin" },
+          { onConflict: "tenant_id,user_id" }
+        );
+      if (mErr) {
+        toast.error(mErr.message);
+        return;
+      }
+      toast.success("Joined Acme Hospitality Group (demo)");
+      await refresh();
+    } finally {
+      setJoining(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -15,12 +56,36 @@ export function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Workspace</CardTitle>
-          <CardDescription>Your company / tenant details</CardDescription>
+          <CardTitle className="text-base">Account & Workspace status</CardTitle>
+          <CardDescription>Live data from your Intergrai account</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label>Workspace name</Label><Input defaultValue={currentTenant.name} /></div>
-          <div className="space-y-1.5"><Label>Plan</Label><Input defaultValue={currentTenant.plan} disabled /></div>
+        <CardContent className="grid gap-3 text-sm sm:grid-cols-2">
+          <Field label="Logged-in email" value={user?.email ?? "—"} />
+          <Field label="Profile ID" value={profile?.id ?? user?.id ?? "—"} mono />
+          <Field label="Current tenant" value={membership?.tenant?.name ?? "None"} />
+          <Field label="Tenant slug" value={membership?.tenant?.slug ?? "—"} mono />
+          <Field label="Tenant role" value={membership?.role ?? "—"} />
+          <div className="space-y-1">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">Demo membership</div>
+            <Badge variant={isDemoMember ? "default" : "secondary"}>
+              {isDemoMember ? "Joined" : "Not joined"}
+            </Badge>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Demo onboarding (development)</CardTitle>
+          <CardDescription>
+            Temporary helper. Joins your account to the existing Acme Hospitality Group demo workspace
+            as <code>client_admin</code>. Safe to click multiple times.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={handleJoinDemo} disabled={joining || !user}>
+            {joining ? "Joining…" : isDemoMember ? "Re-join demo workspace" : "Join demo workspace"}
+          </Button>
         </CardContent>
       </Card>
 
@@ -30,14 +95,25 @@ export function SettingsPage() {
           <CardDescription>Your user account</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5"><Label>Name</Label><Input defaultValue={currentTenant.user.name} /></div>
-          <div className="space-y-1.5"><Label>Email</Label><Input defaultValue={currentTenant.user.email} /></div>
+          <div className="space-y-1.5">
+            <Label>Name</Label>
+            <Input defaultValue={profile?.full_name ?? ""} />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Email</Label>
+            <Input defaultValue={user?.email ?? ""} disabled />
+          </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
 
-      <div className="flex justify-end">
-        <Button onClick={() => toast.success("Settings saved")}>Save changes</Button>
-      </div>
+function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
+      <div className={mono ? "truncate font-mono text-xs" : "truncate"}>{value}</div>
     </div>
   );
 }
