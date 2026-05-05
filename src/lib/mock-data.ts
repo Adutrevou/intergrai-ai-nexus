@@ -21,12 +21,14 @@ export interface Lead {
   company_name: string;
   contact_name: string;
   email: string;
+  email_status: "verified" | "guessed" | "invalid" | "unknown";
   phone: string;
   website: string;
   industry: string;
   location: string;
   status: "new" | "contacted" | "qualified" | "lost";
   source: string;
+  lead_score: number;
 }
 
 export interface CreditEntry {
