@@ -19,6 +19,7 @@ import { Route as ClientCreditsRouteImport } from './routes/client.credits'
 import { Route as ClientChatRouteImport } from './routes/client.chat'
 import { Route as AdminTenantsRouteImport } from './routes/admin.tenants'
 import { Route as AdminTaskQueueRouteImport } from './routes/admin.task-queue'
+import { Route as ApiPublicWorkerRouteImport } from './routes/api/public/worker'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,6 +71,11 @@ const AdminTaskQueueRoute = AdminTaskQueueRouteImport.update({
   path: '/admin/task-queue',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWorkerRoute = ApiPublicWorkerRouteImport.update({
+  id: '/api/public/worker',
+  path: '/api/public/worker',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/client/login': typeof ClientLoginRoute
   '/client/settings': typeof ClientSettingsRoute
   '/client/tasks': typeof ClientTasksRoute
+  '/api/public/worker': typeof ApiPublicWorkerRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/client/login': typeof ClientLoginRoute
   '/client/settings': typeof ClientSettingsRoute
   '/client/tasks': typeof ClientTasksRoute
+  '/api/public/worker': typeof ApiPublicWorkerRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/client/login': typeof ClientLoginRoute
   '/client/settings': typeof ClientSettingsRoute
   '/client/tasks': typeof ClientTasksRoute
+  '/api/public/worker': typeof ApiPublicWorkerRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/client/login'
     | '/client/settings'
     | '/client/tasks'
+    | '/api/public/worker'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/client/login'
     | '/client/settings'
     | '/client/tasks'
+    | '/api/public/worker'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/client/login'
     | '/client/settings'
     | '/client/tasks'
+    | '/api/public/worker'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   ClientLoginRoute: typeof ClientLoginRoute
   ClientSettingsRoute: typeof ClientSettingsRoute
   ClientTasksRoute: typeof ClientTasksRoute
+  ApiPublicWorkerRoute: typeof ApiPublicWorkerRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +245,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminTaskQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/worker': {
+      id: '/api/public/worker'
+      path: '/api/public/worker'
+      fullPath: '/api/public/worker'
+      preLoaderRoute: typeof ApiPublicWorkerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,7 +266,17 @@ const rootRouteChildren: RootRouteChildren = {
   ClientLoginRoute: ClientLoginRoute,
   ClientSettingsRoute: ClientSettingsRoute,
   ClientTasksRoute: ClientTasksRoute,
+  ApiPublicWorkerRoute: ApiPublicWorkerRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
