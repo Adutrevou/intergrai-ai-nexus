@@ -130,9 +130,10 @@ export function ChatPage() {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit(prompt);
             }}
           />
+          <EstimatePreview prompt={prompt} balance={balance} />
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Tasks are reviewed, queued, and processed based on your available credits.
+              Credits are checked before queuing. Final credits are deducted once the AI worker processes the task.
             </p>
             <Button onClick={() => submit(prompt)} disabled={!prompt.trim() || submitting || !tenantId}>
               <Send className="mr-1.5 h-4 w-4" /> Queue task
