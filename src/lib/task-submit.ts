@@ -55,22 +55,23 @@ export function classifyTask(prompt: string): ClassifiedTaskType {
   ];
   if (summaryPatterns.some((re) => re.test(p))) return "summary";
 
-  // 2. Outreach intent.
-  if (/\b(outreach|emails?|messages?|campaigns?)\b/.test(p)) return "outreach_draft";
+  // 2. Lead generation — takes priority over outreach when the prompt mentions
+  //    leads/prospects/contacts/companies or common industry nouns. The word
+  //    "email(s)" alone must NOT push this to outreach_draft.
+  const leadNouns =
+    /\b(leads?|prospects?|contacts?|companies|company|businesses|clinics?|restaurants?|hotels?|firms?|agencies|agency)\b/;
+  const leadVerbs = /\b(find|fine|source|generate|get|build|need|want|give|list|search(?: for)?|look(?:ing)? for|pull|scrape|gather)\b/;
+  if (leadVerbs.test(p) && leadNouns.test(p)) return "lead_generation";
+  if (/\b(lead list|list of leads|new leads?|more leads?|prospect list)\b/.test(p)) return "lead_generation";
 
-  // 3. Lead generation — when the prompt asks to FIND/SOURCE/GENERATE new leads.
-  //    Also tolerate the common typo "fine" for "find".
-  //    The bare word "lead(s)" must not be enough.
-  const leadGenPatterns = [
-    /\b(find|fine)\b[^.]*\b(leads?|contacts?|companies|company|prospects?)\b/,
-    /\bsource\b[^.]*\bleads?\b/,
-    /\bgenerate\b[^.]*\bleads?\b/,
-    /\bget\b[^.]*\bnew\b[^.]*\bleads?\b/,
-    /\bnew\b[^.]*\bleads?\b/,
-    /\bbuild\b[^.]*\b(lead list|list of leads|leads?)\b/,
-    /\bprospect\b/,
+  // 3. Outreach intent — only when explicitly asking to draft/write outreach.
+  const outreachPatterns = [
+    /\b(draft|write|compose|prepare|create)\b[^.]*\b(email|emails|outreach|message|messages|campaign|campaigns|follow[- ]?up|cold email|cold message)\b/,
+    /\bemail these leads?\b/,
+    /\bsend (?:an? )?(?:email|message|outreach|campaign|follow[- ]?up)\b/,
+    /\boutreach (?:email|message|campaign|sequence)\b/,
   ];
-  if (leadGenPatterns.some((re) => re.test(p))) return "lead_generation";
+  if (outreachPatterns.some((re) => re.test(p))) return "outreach_draft";
 
   // 4. Research.
   if (/\b(research|analy[sz]e|analysis)\b/.test(p)) return "research";
