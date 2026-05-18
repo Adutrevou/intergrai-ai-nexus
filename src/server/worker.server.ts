@@ -429,14 +429,20 @@ export async function saveLeads(input: {
 }
 
 export function verifyWorkerKey(headerValue: string | null): boolean {
-  const expected = process.env.INTERGRAI_WORKER_KEY;
-  if (!expected) return false;
   if (!headerValue) return false;
-  // Constant-time-ish compare
-  if (headerValue.length !== expected.length) return false;
-  let mismatch = 0;
-  for (let i = 0; i < expected.length; i++) {
-    mismatch |= expected.charCodeAt(i) ^ headerValue.charCodeAt(i);
-  }
-  return mismatch === 0;
+  const expectedKeys = [
+    process.env.INTERGRAI_WORKER_KEY,
+    process.env.MR_KRABS_WORKER_KEY,
+  ].filter((key): key is string => Boolean(key));
+  if (expectedKeys.length === 0) return false;
+
+  return expectedKeys.some((expected) => {
+    // Constant-time-ish compare
+    if (headerValue.length !== expected.length) return false;
+    let mismatch = 0;
+    for (let i = 0; i < expected.length; i++) {
+      mismatch |= expected.charCodeAt(i) ^ headerValue.charCodeAt(i);
+    }
+    return mismatch === 0;
+  });
 }
