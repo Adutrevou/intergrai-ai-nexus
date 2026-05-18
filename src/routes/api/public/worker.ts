@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
 import {
   claimNextTask,
   completeTask,
@@ -15,6 +16,29 @@ const json = (body: unknown, status = 200) =>
     status,
     headers: { "Content-Type": "application/json" },
   });
+
+const JsonValueSchema: z.ZodType<Json> = z.lazy(() =>
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.array(JsonValueSchema),
+    z.record(z.string(), JsonValueSchema),
+  ]),
+);
+
+const QualityReasonsSchema = z
+  .union([
+    z.array(z.string().max(500)).max(50),
+    z
+      .array(JsonValueSchema)
+      .max(50)
+      .transform((values) =>
+        values.map((value) => (typeof value === "string" ? value : JSON.stringify(value))),
+      ),
+  ])
+  .pipe(z.array(z.string().max(500)).max(50));
 
 const ClaimSchema = z.object({
   action: z.literal("claim_next_task"),
@@ -63,24 +87,25 @@ const SaveLeadsSchema = z.object({
         company_name: z.string().min(1).max(500).optional().nullable(),
         contact_name: z.string().max(500).optional().nullable(),
         email: z.string().max(500).optional().nullable(),
-        email_status: z.string().max(50).optional().nullable(),
+        email_status: z.string().max(100).optional().nullable(),
         phone: z.string().max(100).optional().nullable(),
-        website: z.string().max(1000).optional().nullable(),
-        industry: z.string().max(255).optional().nullable(),
-        location: z.string().max(500).optional().nullable(),
-        status: z.string().max(50).optional().nullable(),
-        lead_score: z.number().int().min(0).max(100).optional().nullable(),
-        source: z.string().max(100).optional().nullable(),
         title: z.string().max(500).optional().nullable(),
+        website: z.string().max(1000).optional().nullable(),
         domain: z.string().max(500).optional().nullable(),
         linkedin_url: z.string().max(1000).optional().nullable(),
         company_linkedin: z.string().max(1000).optional().nullable(),
+        industry: z.string().max(255).optional().nullable(),
+        location: z.string().max(500).optional().nullable(),
         qualification: z.string().max(100).optional().nullable(),
         hot_lead: z.boolean().optional().nullable(),
-        quality_reasons: z.array(z.string().max(500)).max(50).optional().nullable(),
-        apollo_person_id: z.string().max(255).optional().nullable(),
-        apollo_org_id: z.string().max(255).optional().nullable(),
-        metadata: z.record(z.string(), z.any()).optional().nullable(),
+        quality_reasons: QualityReasonsSchema.optional().nullable(),
+        apollo_person_id: z.string().max(500).optional().nullable(),
+        apollo_org_id: z.string().max(500).optional().nullable(),
+        metadata: JsonValueSchema.optional().nullable(),
+        status: z.string().max(50).optional().nullable(),
+        lead_score: z.number().int().min(0).max(100).optional().nullable(),
+        score: z.number().int().min(0).max(100).optional().nullable(),
+        source: z.string().max(100).optional().nullable(),
       }),
     )
     .min(1)
