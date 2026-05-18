@@ -22,10 +22,15 @@ export type DbLead = {
   company_name: string | null;
   contact_name: string | null;
   email: string | null;
+  email_status: string | null;
   location: string | null;
   status: string;
   lead_score: number | null;
   industry: string | null;
+  source: string | null;
+  apollo_person_id: string | null;
+  hot_lead: boolean | null;
+  qualification: string | null;
 };
 
 export type DbTenant = {
