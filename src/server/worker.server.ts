@@ -2,6 +2,7 @@
 // because the worker process is a trusted server actor authorized via the
 // INTERGRAI_WORKER_KEY header — RLS is bypassed deliberately here.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database, Json } from "@/integrations/supabase/types";
 
 export type WorkerLogEntry = {
   ts: string;
@@ -272,27 +273,55 @@ export async function requestApproval(input: {
 }
 
 export type SaveLeadInput = {
+  apollo_org_id?: string | null;
+  apollo_person_id?: string | null;
+  company_linkedin?: string | null;
   company_name?: string | null;
   contact_name?: string | null;
+  domain?: string | null;
   email?: string | null;
   email_status?: string | null;
+  hot_lead?: boolean | null;
+  linkedin_url?: string | null;
   phone?: string | null;
   website?: string | null;
   industry?: string | null;
   location?: string | null;
   status?: string | null;
   lead_score?: number | null;
+  score?: number | null;
   source?: string | null;
   title?: string | null;
-  domain?: string | null;
-  linkedin_url?: string | null;
-  company_linkedin?: string | null;
   qualification?: string | null;
-  hot_lead?: boolean | null;
   quality_reasons?: string[] | null;
-  apollo_person_id?: string | null;
-  apollo_org_id?: string | null;
-  metadata?: Record<string, unknown> | null;
+  metadata?: Json | null;
+};
+
+type LeadInsert = Database["public"]["Tables"]["leads"]["Insert"];
+
+const isJsonObject = (value: Json | null | undefined): value is { [key: string]: Json | undefined } =>
+  !!value && typeof value === "object" && !Array.isArray(value);
+
+const buildLeadMetadata = (lead: SaveLeadInput): Json => {
+  const metadata = isJsonObject(lead.metadata) ? { ...lead.metadata } : {};
+
+  const apolloMetadata = {
+    ...(lead.apollo_person_id ? { apollo_person_id: lead.apollo_person_id } : {}),
+    ...(lead.apollo_org_id ? { apollo_org_id: lead.apollo_org_id } : {}),
+    ...(lead.email_status ? { email_status: lead.email_status } : {}),
+    ...(lead.title ? { title: lead.title } : {}),
+    ...(lead.domain ? { domain: lead.domain } : {}),
+    ...(lead.linkedin_url ? { linkedin_url: lead.linkedin_url } : {}),
+    ...(lead.company_linkedin ? { company_linkedin: lead.company_linkedin } : {}),
+    ...(lead.qualification ? { qualification: lead.qualification } : {}),
+    ...(typeof lead.hot_lead === "boolean" ? { hot_lead: lead.hot_lead } : {}),
+    ...(lead.quality_reasons ? { quality_reasons: lead.quality_reasons } : {}),
+  };
+
+  return {
+    ...metadata,
+    ...apolloMetadata,
+  };
 };
 
 export async function saveLeads(input: {
@@ -335,7 +364,7 @@ export async function saveLeads(input: {
   const seen = new Set<string>();
   for (const r of existing ?? []) seen.add(dupKey(r));
 
-  const toInsert: Array<Record<string, unknown>> = [];
+  const toInsert: LeadInsert[] = [];
   let duplicates = 0;
   for (const lead of input.leads) {
     const key = dupKey(lead);
@@ -357,7 +386,7 @@ export async function saveLeads(input: {
       industry: lead.industry ?? null,
       location: lead.location ?? null,
       status: lead.status ?? "new",
-      lead_score: lead.lead_score ?? null,
+      lead_score: lead.lead_score ?? lead.score ?? null,
       source: lead.source ?? "mr_krabs",
       title: lead.title ?? null,
       domain: lead.domain ?? null,
@@ -368,7 +397,7 @@ export async function saveLeads(input: {
       quality_reasons: lead.quality_reasons ?? [],
       apollo_person_id: lead.apollo_person_id ?? null,
       apollo_org_id: lead.apollo_org_id ?? null,
-      metadata: lead.metadata ?? {},
+      metadata: buildLeadMetadata(lead),
     });
   }
 

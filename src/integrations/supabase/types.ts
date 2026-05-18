@@ -234,8 +234,8 @@ export type Database = {
           hot_lead: boolean | null
           id: string
           industry: string | null
-          lead_score: number | null
           linkedin_url: string | null
+          lead_score: number | null
           location: string | null
           metadata: Json | null
           phone: string | null
@@ -261,8 +261,8 @@ export type Database = {
           hot_lead?: boolean | null
           id?: string
           industry?: string | null
-          lead_score?: number | null
           linkedin_url?: string | null
+          lead_score?: number | null
           location?: string | null
           metadata?: Json | null
           phone?: string | null
@@ -288,8 +288,8 @@ export type Database = {
           hot_lead?: boolean | null
           id?: string
           industry?: string | null
-          lead_score?: number | null
           linkedin_url?: string | null
+          lead_score?: number | null
           location?: string | null
           metadata?: Json | null
           phone?: string | null
