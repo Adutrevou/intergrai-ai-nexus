@@ -222,51 +222,84 @@ export type Database = {
       }
       leads: {
         Row: {
+          apollo_org_id: string | null
+          apollo_person_id: string | null
+          company_linkedin: string | null
           company_name: string | null
           contact_name: string | null
           created_at: string
+          domain: string | null
           email: string | null
+          email_status: string | null
+          hot_lead: boolean | null
           id: string
           industry: string | null
           lead_score: number | null
+          linkedin_url: string | null
           location: string | null
+          metadata: Json | null
           phone: string | null
+          qualification: string | null
+          quality_reasons: Json | null
           source: string | null
           status: string
           task_id: string | null
           tenant_id: string
+          title: string | null
           website: string | null
         }
         Insert: {
+          apollo_org_id?: string | null
+          apollo_person_id?: string | null
+          company_linkedin?: string | null
           company_name?: string | null
           contact_name?: string | null
           created_at?: string
+          domain?: string | null
           email?: string | null
+          email_status?: string | null
+          hot_lead?: boolean | null
           id?: string
           industry?: string | null
           lead_score?: number | null
+          linkedin_url?: string | null
           location?: string | null
+          metadata?: Json | null
           phone?: string | null
+          qualification?: string | null
+          quality_reasons?: Json | null
           source?: string | null
           status?: string
           task_id?: string | null
           tenant_id: string
+          title?: string | null
           website?: string | null
         }
         Update: {
+          apollo_org_id?: string | null
+          apollo_person_id?: string | null
+          company_linkedin?: string | null
           company_name?: string | null
           contact_name?: string | null
           created_at?: string
+          domain?: string | null
           email?: string | null
+          email_status?: string | null
+          hot_lead?: boolean | null
           id?: string
           industry?: string | null
           lead_score?: number | null
+          linkedin_url?: string | null
           location?: string | null
+          metadata?: Json | null
           phone?: string | null
+          qualification?: string | null
+          quality_reasons?: Json | null
           source?: string | null
           status?: string
           task_id?: string | null
           tenant_id?: string
+          title?: string | null
           website?: string | null
         }
         Relationships: [
