@@ -275,6 +275,7 @@ export type SaveLeadInput = {
   company_name?: string | null;
   contact_name?: string | null;
   email?: string | null;
+  email_status?: string | null;
   phone?: string | null;
   website?: string | null;
   industry?: string | null;
@@ -282,6 +283,16 @@ export type SaveLeadInput = {
   status?: string | null;
   lead_score?: number | null;
   source?: string | null;
+  title?: string | null;
+  domain?: string | null;
+  linkedin_url?: string | null;
+  company_linkedin?: string | null;
+  qualification?: string | null;
+  hot_lead?: boolean | null;
+  quality_reasons?: string[] | null;
+  apollo_person_id?: string | null;
+  apollo_org_id?: string | null;
+  metadata?: Record<string, unknown> | null;
 };
 
 export async function saveLeads(input: {
@@ -304,39 +315,30 @@ export async function saveLeads(input: {
   if (tErr) throw new Error(tErr.message);
   if (!tenant) throw new Error("Tenant not found");
 
-  // Pull existing leads for this tenant for duplicate checking
-  // Dedup key: company_name + email (case-insensitive) per tenant
+  // Pull existing leads for this tenant for duplicate checking.
+  // Dedup key prefers apollo_person_id; falls back to company_name + email.
   const { data: existing, error: exErr } = await supabaseAdmin
     .from("leads")
-    .select("email, company_name")
+    .select("email, company_name, apollo_person_id")
     .eq("tenant_id", input.tenant_id);
   if (exErr) throw new Error(exErr.message);
 
-  const dupKey = (company?: string | null, email?: string | null) =>
-    `${(company ?? "").toLowerCase().trim()}|${(email ?? "").toLowerCase().trim()}`;
+  const dupKey = (lead: {
+    company_name?: string | null;
+    email?: string | null;
+    apollo_person_id?: string | null;
+  }) => {
+    if (lead.apollo_person_id) return `apollo:${lead.apollo_person_id}`;
+    return `ce:${(lead.company_name ?? "").toLowerCase().trim()}|${(lead.email ?? "").toLowerCase().trim()}`;
+  };
 
   const seen = new Set<string>();
-  for (const r of existing ?? []) {
-    seen.add(dupKey(r.company_name, r.email));
-  }
+  for (const r of existing ?? []) seen.add(dupKey(r));
 
-  const toInsert: Array<{
-    tenant_id: string;
-    task_id: string;
-    company_name: string | null;
-    contact_name: string | null;
-    email: string | null;
-    phone: string | null;
-    website: string | null;
-    industry: string | null;
-    location: string | null;
-    status: string;
-    lead_score: number | null;
-    source: string | null;
-  }> = [];
+  const toInsert: Array<Record<string, unknown>> = [];
   let duplicates = 0;
   for (const lead of input.leads) {
-    const key = dupKey(lead.company_name, lead.email);
+    const key = dupKey(lead);
     if (seen.has(key)) {
       duplicates++;
       continue;
@@ -349,6 +351,7 @@ export async function saveLeads(input: {
       company_name: lead.company_name ?? null,
       contact_name: lead.contact_name ?? null,
       email: lead.email ?? null,
+      email_status: lead.email_status ?? null,
       phone: lead.phone ?? null,
       website: lead.website ?? null,
       industry: lead.industry ?? null,
@@ -356,22 +359,35 @@ export async function saveLeads(input: {
       status: lead.status ?? "new",
       lead_score: lead.lead_score ?? null,
       source: lead.source ?? "mr_krabs",
+      title: lead.title ?? null,
+      domain: lead.domain ?? null,
+      linkedin_url: lead.linkedin_url ?? null,
+      company_linkedin: lead.company_linkedin ?? null,
+      qualification: lead.qualification ?? null,
+      hot_lead: lead.hot_lead ?? false,
+      quality_reasons: lead.quality_reasons ?? [],
+      apollo_person_id: lead.apollo_person_id ?? null,
+      apollo_org_id: lead.apollo_org_id ?? null,
+      metadata: lead.metadata ?? {},
     });
   }
 
   let inserted = 0;
+  let insertedIds: string[] = [];
   if (toInsert.length > 0) {
-    const { error: insErr, count } = await supabaseAdmin
+    const { data: insData, error: insErr } = await supabaseAdmin
       .from("leads")
-      .insert(toInsert, { count: "exact" });
+      .insert(toInsert as never)
+      .select("id");
     if (insErr) throw new Error(insErr.message);
-    inserted = count ?? toInsert.length;
+    insertedIds = (insData ?? []).map((r) => r.id);
+    inserted = insertedIds.length;
   }
 
   const logs = appendLog(task.worker_logs, {
     ts: nowIso(),
     level: "info",
-    message: `Saved ${inserted} leads to client platform`,
+    message: `Saved ${inserted} leads to client platform (skipped ${duplicates} duplicate${duplicates === 1 ? "" : "s"})`,
     worker_id: task.worker_id ?? undefined,
   });
   const { error: logErr } = await supabaseAdmin
@@ -380,7 +396,7 @@ export async function saveLeads(input: {
     .eq("id", input.task_id);
   if (logErr) throw new Error(logErr.message);
 
-  return { ok: true, inserted, skipped_duplicates: duplicates };
+  return { ok: true, inserted, inserted_ids: insertedIds, skipped_duplicates: duplicates };
 }
 
 export function verifyWorkerKey(headerValue: string | null): boolean {
